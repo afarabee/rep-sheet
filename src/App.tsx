@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
 import AppShell from '@/components/layout/AppShell'
 import Home from '@/pages/Home'
 import History from '@/pages/History'
@@ -12,40 +11,24 @@ import Templates from '@/pages/Templates'
 import FiveByFiveSetup from '@/pages/FiveByFiveSetup'
 import FiveByFiveWorkout from '@/pages/FiveByFiveWorkout'
 
-function AppRoutes() {
-  const { loading } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground font-display text-lg uppercase tracking-widest">Loading...</p>
-      </div>
-    )
-  }
-
-  return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/body-comp" element={<BodyComp />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/library" element={<Library />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/workout/active" element={<ActiveWorkout />} />
-        <Route path="/templates" element={<Templates />} />
-        <Route path="/workout/5x5/setup" element={<FiveByFiveSetup />} />
-        <Route path="/workout/5x5/active" element={<FiveByFiveWorkout />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
-}
-
 export default function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/body-comp" element={<BodyComp />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/workout/active" element={<ActiveWorkout />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/workout/5x5/setup" element={<FiveByFiveSetup />} />
+          <Route path="/workout/5x5/active" element={<FiveByFiveWorkout />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   )
 }
