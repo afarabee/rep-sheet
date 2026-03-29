@@ -169,20 +169,9 @@ export default function ActiveWorkout() {
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             Freeform
           </span>
-          <div className="flex items-center gap-2">
-            <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
-              {formatTime(elapsedSeconds)}
-            </span>
-            {status === 'active' && (
-              <button
-                onClick={isPaused ? resumeWorkout : pauseWorkout}
-                className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
-                title={isPaused ? 'Resume' : 'Pause'}
-              >
-                {isPaused ? <Play size={13} /> : <Pause size={13} />}
-              </button>
-            )}
-          </div>
+          <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
+            {formatTime(elapsedSeconds)}
+          </span>
         </div>
 
         {/* Exercise list */}
@@ -267,12 +256,22 @@ export default function ActiveWorkout() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setConfirmEnd(true)}
-              className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
-            >
-              End Workout
-            </button>
+            <div className="flex flex-col gap-2">
+              {status === 'active' && (
+                <button
+                  onClick={isPaused ? resumeWorkout : pauseWorkout}
+                  className="w-full py-3 rounded-xl border border-[#5E5278] text-[#9B8FB0] text-sm font-black uppercase tracking-wider transition-all hover:border-[#9B8FB0] hover:text-foreground flex items-center justify-center gap-2"
+                >
+                  {isPaused ? <><Play size={14} /> Resume</> : <><Pause size={14} /> Pause</>}
+                </button>
+              )}
+              <button
+                onClick={() => setConfirmEnd(true)}
+                className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
+              >
+                End Workout
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -287,7 +286,7 @@ export default function ActiveWorkout() {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-6 bg-radial-purple">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-radial-purple">
 
           {/* Empty state */}
           {workoutExercises.length === 0 && (
