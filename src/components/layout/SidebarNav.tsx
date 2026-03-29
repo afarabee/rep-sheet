@@ -40,7 +40,10 @@ export default function SidebarNav() {
           className="w-full h-full object-cover rounded-full overflow-hidden"
         />
         {hasActiveWorkout && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#E91E8C] animate-pulse border-2 border-background" />
+          <span className="absolute bottom-0 right-0 flex w-3 h-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7DFFC4] opacity-75" />
+            <span className="relative inline-flex w-3 h-3 rounded-full bg-[#7DFFC4] border-2 border-background" />
+          </span>
         )}
       </div>
 
