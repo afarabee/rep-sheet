@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { X, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActiveWorkout } from '@/hooks/useActiveWorkout'
 import ExercisePicker from '@/components/workout/ExercisePicker'
@@ -106,10 +106,13 @@ export default function ActiveWorkout() {
     logSet,
     adjustRestTimer,
     skipRestTimer,
+    pauseWorkout,
+    resumeWorkout,
     startWorkout,
     saveNotes,
     endWorkout,
     cancelWorkout,
+    isPaused,
   } = useActiveWorkout(templateId)
 
   const [showPicker, setShowPicker] = useState(false)
@@ -166,9 +169,20 @@ export default function ActiveWorkout() {
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             Freeform
           </span>
-          <span className={cn('weight-number text-sm', status === 'active' ? 'text-[#00E5FF]' : 'text-[#3D2E5C]')}>
-            {formatTime(elapsedSeconds)}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
+              {formatTime(elapsedSeconds)}
+            </span>
+            {status === 'active' && (
+              <button
+                onClick={isPaused ? resumeWorkout : pauseWorkout}
+                className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
+                title={isPaused ? 'Resume' : 'Pause'}
+              >
+                {isPaused ? <Play size={13} /> : <Pause size={13} />}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Exercise list */}

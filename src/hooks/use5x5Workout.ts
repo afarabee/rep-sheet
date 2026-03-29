@@ -41,6 +41,7 @@ export function use5x5Workout(label: 'A' | 'B') {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [restSecondsLeft, setRestSecondsLeft] = useState<number | null>(null)
   const [status, setStatus] = useState<'loading' | 'planning' | 'active' | 'complete' | 'ab_circuit' | 'ended'>('loading')
+  const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -179,12 +180,12 @@ export function use5x5Workout(label: 'A' | 'B') {
     init()
   }, [label])
 
-  // Elapsed timer
+  // Elapsed timer — counts up while active and not paused
   useEffect(() => {
-    if (status !== 'active') return
+    if (status !== 'active' || isPaused) return
     const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000)
     return () => clearInterval(interval)
-  }, [status])
+  }, [status, isPaused])
 
   // Rest timer countdown
   useEffect(() => {
@@ -193,6 +194,9 @@ export function use5x5Workout(label: 'A' | 'B') {
     const t = setTimeout(() => setRestSecondsLeft((s) => (s !== null ? s - 1 : null)), 1000)
     return () => clearTimeout(t)
   }, [restSecondsLeft])
+
+  function pauseWorkout() { setIsPaused(true) }
+  function resumeWorkout() { setIsPaused(false) }
 
   async function startWorkout() {
     if (!workoutId) return
@@ -326,6 +330,7 @@ export function use5x5Workout(label: 'A' | 'B') {
     elapsedSeconds,
     restSecondsLeft,
     status,
+    isPaused,
     error,
     startWorkout,
     logSet,
@@ -333,6 +338,8 @@ export function use5x5Workout(label: 'A' | 'B') {
     addExercise,
     adjustRestTimer,
     skipRestTimer,
+    pauseWorkout,
+    resumeWorkout,
     updateWorkingWeight,
     startAbCircuit,
     saveNotes,

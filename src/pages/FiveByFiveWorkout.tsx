@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Settings } from 'lucide-react'
+import { Settings, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { use5x5Workout } from '@/hooks/use5x5Workout'
 import { useAbCircuit } from '@/hooks/useAbCircuit'
@@ -99,11 +99,14 @@ export default function FiveByFiveWorkout() {
     addExercise,
     adjustRestTimer,
     skipRestTimer,
+    pauseWorkout,
+    resumeWorkout,
     updateWorkingWeight,
     startAbCircuit,
     saveNotes,
     cancelWorkout,
     endWorkout,
+    isPaused,
   } = use5x5Workout(label)
 
   const { config: abConfig } = useAbCircuit()
@@ -205,10 +208,19 @@ export default function FiveByFiveWorkout() {
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             5×5 {label}
           </span>
-          <div className="flex items-center gap-3">
-            <span className={cn('weight-number text-sm', status === 'active' ? 'text-[#00E5FF]' : 'text-[#3D2E5C]')}>
+          <div className="flex items-center gap-2">
+            <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
               {formatTime(elapsedSeconds)}
             </span>
+            {status === 'active' && (
+              <button
+                onClick={isPaused ? resumeWorkout : pauseWorkout}
+                className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
+                title={isPaused ? 'Resume' : 'Pause'}
+              >
+                {isPaused ? <Play size={13} /> : <Pause size={13} />}
+              </button>
+            )}
             <button
               onClick={() => navigate('/workout/5x5/setup')}
               className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"

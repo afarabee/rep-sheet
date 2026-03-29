@@ -42,6 +42,7 @@ export function useActiveWorkout(templateId?: string) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [restSecondsLeft, setRestSecondsLeft] = useState<number | null>(null)
   const [status, setStatus] = useState<'creating' | 'planning' | 'active' | 'ended'>('creating')
+  const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -159,12 +160,12 @@ export function useActiveWorkout(templateId?: string) {
     init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Elapsed timer — counts up while workout is active
+  // Elapsed timer — counts up while workout is active and not paused
   useEffect(() => {
-    if (status !== 'active') return
+    if (status !== 'active' || isPaused) return
     const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000)
     return () => clearInterval(interval)
-  }, [status])
+  }, [status, isPaused])
 
   // Rest timer countdown
   useEffect(() => {
@@ -249,6 +250,9 @@ export function useActiveWorkout(templateId?: string) {
     setRestSecondsLeft(null)
   }
 
+  function pauseWorkout() { setIsPaused(true) }
+  function resumeWorkout() { setIsPaused(false) }
+
   async function startWorkout() {
     if (!workoutId) return
     await supabase
@@ -286,12 +290,15 @@ export function useActiveWorkout(templateId?: string) {
     elapsedSeconds,
     restSecondsLeft,
     status,
+    isPaused,
     error,
     addExercise,
     removeExercise,
     logSet,
     adjustRestTimer,
     skipRestTimer,
+    pauseWorkout,
+    resumeWorkout,
     startWorkout,
     saveNotes,
     endWorkout,
