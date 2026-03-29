@@ -56,14 +56,14 @@ function NumericInput({ label, value, onChange, step, placeholder }: NumericInpu
   }
 
   return (
-    <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-2 shrink-0">
       <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#9B8FB0]">
         {label}
       </label>
       <div className="flex items-center gap-2">
         <button
           onClick={() => adjust(-step)}
-          className="w-12 h-16 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-2xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
+          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
         >
           −
         </button>
@@ -72,13 +72,13 @@ function NumericInput({ label, value, onChange, step, placeholder }: NumericInpu
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 h-16 rounded-xl bg-background border-2 border-[#3D2E5C] text-foreground text-3xl font-black text-center weight-number outline-none transition-colors focus:border-[#E91E8C]"
+          className="w-24 h-11 rounded-xl bg-background border-2 border-[#3D2E5C] text-foreground text-xl font-black text-center weight-number outline-none transition-colors focus:border-[#E91E8C]"
           style={{ caretColor: '#E91E8C' }}
           inputMode="decimal"
         />
         <button
           onClick={() => adjust(step)}
-          className="w-12 h-16 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-2xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
+          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
         >
           +
         </button>
@@ -395,7 +395,7 @@ export default function ActiveWorkout() {
                   {/* Log Set button */}
                   <button
                     onClick={handleLogSet}
-                    className="h-16 px-8 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
+                    className="h-11 px-6 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
                   >
                     Log Set
                   </button>
