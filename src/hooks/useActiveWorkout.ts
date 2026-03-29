@@ -44,9 +44,65 @@ export function useActiveWorkout(templateId?: string) {
   const [status, setStatus] = useState<'creating' | 'planning' | 'active' | 'ended'>('creating')
   const [error, setError] = useState<string | null>(null)
 
-  // Create the workout row on mount, pre-loading template exercises if provided
   useEffect(() => {
-    async function create() {
+    async function init() {
+      // Check for an existing in-progress freeform/template workout
+      const { data: existing } = await supabase
+        .from('workouts')
+        .select('id')
+        .in('workout_type', ['freeform', 'template'])
+        .not('started_at', 'is', null)
+        .is('completed_at', null)
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        // Resume existing workout
+        const wid = existing.id
+        setWorkoutId(wid)
+
+        const { data: weData } = await supabase
+          .from('workout_exercises')
+          .select('id, exercise_id, sort_order, exercises(name)')
+          .eq('workout_id', wid)
+          .order('sort_order', { ascending: true })
+
+        if (weData && weData.length > 0) {
+          const weIds = weData.map((we) => we.id)
+          const { data: setsData } = await supabase
+            .from('workout_sets')
+            .select('id, workout_exercise_id, set_number, weight_lbs, reps, completed')
+            .in('workout_exercise_id', weIds)
+            .order('set_number', { ascending: true })
+
+          const setsByWe = new Map<string, WorkoutSet[]>()
+          for (const s of (setsData ?? [])) {
+            if (!setsByWe.has(s.workout_exercise_id)) setsByWe.set(s.workout_exercise_id, [])
+            setsByWe.get(s.workout_exercise_id)!.push({
+              id: s.id,
+              set_number: s.set_number,
+              weight_lbs: s.weight_lbs,
+              reps: s.reps,
+              completed: s.completed,
+            })
+          }
+
+          const exs: WorkoutExercise[] = weData.map((we) => ({
+            id: we.id,
+            exercise_id: we.exercise_id,
+            sort_order: we.sort_order,
+            name: (we.exercises as unknown as { name: string } | null)?.name ?? 'Unknown',
+            sets: setsByWe.get(we.id) ?? [],
+          }))
+
+          setWorkoutExercises(exs)
+        }
+
+        setStatus('active')
+        return
+      }
+
+      // No existing workout — create new
       const workoutType = templateId ? 'template' : 'freeform'
       const insertPayload: Record<string, string> = { workout_type: workoutType }
       if (templateId) insertPayload.template_id = templateId
@@ -61,7 +117,6 @@ export function useActiveWorkout(templateId?: string) {
       setWorkoutId(wid)
 
       if (templateId) {
-        // Load template exercises and pre-insert as workout_exercises
         const { data: teData } = await supabase
           .from('workout_template_exercises')
           .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name)')
@@ -101,7 +156,7 @@ export function useActiveWorkout(templateId?: string) {
 
       setStatus('planning')
     }
-    create()
+    init()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Elapsed timer — counts up while workout is active
@@ -149,7 +204,6 @@ export function useActiveWorkout(templateId?: string) {
     await supabase.from('workout_exercises').delete().eq('id', workoutExerciseId)
     setWorkoutExercises((prev) => {
       const filtered = prev.filter((ex) => ex.id !== workoutExerciseId)
-      // Recalculate sort_order
       const reordered = filtered.map((ex, i) => ({ ...ex, sort_order: i }))
       setActiveExerciseIndex((idx) => Math.min(idx, Math.max(0, reordered.length - 1)))
       return reordered

@@ -21,6 +21,12 @@ interface HomeStats {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
+function getWorkoutRoute(type: string): string {
+  if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
+  if (type === 'five_by_five_b') return '/workout/5x5/active?label=B'
+  return '/workout/active'
+}
+
 function formatWorkoutType(type: string): string {
   switch (type) {
     case 'five_by_five_a': return '5×5 Workout A'
@@ -94,10 +100,11 @@ export default function Home() {
   const [hasConfig, setHasConfig] = useState(false)
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([])
   const [stats, setStats] = useState<HomeStats>({ totalWorkouts: null, bodyWeight: null, bodyFatPct: null })
+  const [activeWorkout, setActiveWorkout] = useState<{ id: string; type: string } | null>(null)
 
   useEffect(() => {
     async function load() {
-      const [lastResult, configResult, workoutsResult, bodyCompResult] = await Promise.all([
+      const [lastResult, configResult, workoutsResult, bodyCompResult, activeResult] = await Promise.all([
         supabase
           .from('workouts')
           .select('workout_type')
@@ -120,7 +127,17 @@ export default function Home() {
           .select('weight_lbs, body_fat_pct')
           .order('recorded_at', { ascending: false })
           .limit(1),
+        supabase
+          .from('workouts')
+          .select('id, workout_type')
+          .not('started_at', 'is', null)
+          .is('completed_at', null)
+          .limit(1),
       ])
+
+      // Active workout
+      const active = activeResult.data?.[0]
+      setActiveWorkout(active ? { id: active.id, type: active.workout_type } : null)
 
       // Next 5×5 label
       const last = lastResult.data?.[0]?.workout_type
@@ -260,6 +277,25 @@ export default function Home() {
           <img src="/images/super-aimee-1.png" alt="Super Aimee" className="w-full h-full object-cover object-top" />
         </div>
       </div>
+
+      {/* Active Workout Banner */}
+      {activeWorkout && (
+        <div className="mx-10 mb-4 p-4 rounded-2xl border border-[#7DFFC4]/30 bg-[#7DFFC4]/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="relative flex w-3 h-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7DFFC4] opacity-75" />
+              <span className="relative inline-flex w-3 h-3 rounded-full bg-[#7DFFC4]" />
+            </span>
+            <span className="text-sm font-bold text-[#7DFFC4]">Workout in progress</span>
+          </div>
+          <button
+            onClick={() => navigate(getWorkoutRoute(activeWorkout.type))}
+            className="text-xs font-black uppercase tracking-wider text-[#7DFFC4] border border-[#7DFFC4]/40 px-3 py-1.5 rounded-lg transition-all duration-150 hover:bg-[#7DFFC4]/10 active:scale-[0.98]"
+          >
+            Resume →
+          </button>
+        </div>
+      )}
 
       {/* Recent Workouts */}
       <div className="px-10 pb-8">

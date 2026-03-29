@@ -45,7 +45,74 @@ export function use5x5Workout(label: 'A' | 'B') {
 
   useEffect(() => {
     async function init() {
-      // 1. Load config + working weights for this label
+      // Check for an existing in-progress 5x5 workout
+      const { data: existing } = await supabase
+        .from('workouts')
+        .select('id, workout_type')
+        .in('workout_type', ['five_by_five_a', 'five_by_five_b'])
+        .not('started_at', 'is', null)
+        .is('completed_at', null)
+        .limit(1)
+        .maybeSingle()
+
+      if (existing) {
+        // Resume existing workout
+        const wid = existing.id
+        setWorkoutId(wid)
+
+        const [weResult, weightsResult] = await Promise.all([
+          supabase
+            .from('workout_exercises')
+            .select('id, exercise_id, sort_order, exercises(name)')
+            .eq('workout_id', wid)
+            .order('sort_order', { ascending: true }),
+          supabase.from('working_weights').select('exercise_id, weight_lbs'),
+        ])
+
+        const weData = weResult.data ?? []
+        const weightsMap = new Map(
+          (weightsResult.data ?? []).map((w) => [w.exercise_id, w.weight_lbs as number | null])
+        )
+
+        if (weData.length > 0) {
+          const weIds = weData.map((we) => we.id)
+          const { data: setsData } = await supabase
+            .from('workout_sets')
+            .select('id, workout_exercise_id, set_number, weight_lbs, reps, completed')
+            .in('workout_exercise_id', weIds)
+            .order('set_number', { ascending: true })
+
+          const setsByWe = new Map<string, FiveByFiveSet[]>()
+          for (const s of (setsData ?? [])) {
+            if (!setsByWe.has(s.workout_exercise_id)) setsByWe.set(s.workout_exercise_id, [])
+            setsByWe.get(s.workout_exercise_id)!.push({
+              id: s.id,
+              set_number: s.set_number,
+              weight_lbs: s.weight_lbs,
+              reps: s.reps,
+              completed: s.completed,
+            })
+          }
+
+          const exs: FiveByFiveExercise[] = weData
+            .map((we) => ({
+              workoutExerciseId: we.id,
+              exerciseId: we.exercise_id,
+              sort_order: we.sort_order,
+              name: (we.exercises as unknown as { name: string } | null)?.name ?? 'Unknown',
+              workingWeight: weightsMap.get(we.exercise_id) ?? null,
+              sets: setsByWe.get(we.id) ?? [],
+            }))
+            .sort((a, b) => a.sort_order - b.sort_order)
+
+          setExercises(exs)
+        }
+
+        setStatus('active')
+        return
+      }
+
+      // No existing workout — create new
       const [configResult, weightsResult] = await Promise.all([
         supabase
           .from('five_by_five_config')
@@ -62,7 +129,6 @@ export function use5x5Workout(label: 'A' | 'B') {
         (weightsResult.data ?? []).map((w) => [w.exercise_id, w.weight_lbs as number | null])
       )
 
-      // 2. Create workout row (no started_at — planning phase)
       const workoutType = label === 'A' ? 'five_by_five_a' : 'five_by_five_b'
       const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
@@ -74,7 +140,6 @@ export function use5x5Workout(label: 'A' | 'B') {
       const wid = workoutData.id
       setWorkoutId(wid)
 
-      // 3. Insert workout_exercises for each configured exercise
       if (config.length > 0) {
         const { data: weData, error: weError } = await supabase
           .from('workout_exercises')
