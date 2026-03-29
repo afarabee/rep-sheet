@@ -48,12 +48,12 @@ function NumericInput({ label, value, onChange, step, placeholder }: {
     onChange(step % 1 === 0 ? String(next) : next.toFixed(1))
   }
   return (
-    <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-2 shrink-0">
       <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#9B8FB0]">{label}</label>
       <div className="flex items-center gap-2">
         <button
           onClick={() => adjust(-step)}
-          className="w-12 h-16 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-2xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
+          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
         >
           −
         </button>
@@ -62,13 +62,13 @@ function NumericInput({ label, value, onChange, step, placeholder }: {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="flex-1 h-16 rounded-xl bg-background border-2 border-[#3D2E5C] text-foreground text-3xl font-black text-center weight-number outline-none transition-colors focus:border-[#E91E8C]"
+          className="w-24 h-11 rounded-xl bg-background border-2 border-[#3D2E5C] text-foreground text-xl font-black text-center weight-number outline-none transition-colors focus:border-[#E91E8C]"
           style={{ caretColor: '#E91E8C' }}
           inputMode="decimal"
         />
         <button
           onClick={() => adjust(step)}
-          className="w-12 h-16 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-2xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
+          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
         >
           +
         </button>
@@ -212,15 +212,6 @@ export default function FiveByFiveWorkout() {
             <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
               {formatTime(elapsedSeconds)}
             </span>
-            {status === 'active' && (
-              <button
-                onClick={isPaused ? resumeWorkout : pauseWorkout}
-                className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
-                title={isPaused ? 'Resume' : 'Pause'}
-              >
-                {isPaused ? <Play size={13} /> : <Pause size={13} />}
-              </button>
-            )}
             <button
               onClick={() => navigate('/workout/5x5/setup')}
               className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
@@ -337,12 +328,22 @@ export default function FiveByFiveWorkout() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setConfirmEnd(true)}
-              className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
-            >
-              End Workout
-            </button>
+            <div className="flex flex-col gap-2">
+              {status === 'active' && (
+                <button
+                  onClick={isPaused ? resumeWorkout : pauseWorkout}
+                  className="w-full py-3 rounded-xl border border-[#5E5278] text-[#9B8FB0] text-sm font-black uppercase tracking-wider transition-all hover:border-[#9B8FB0] hover:text-foreground flex items-center justify-center gap-2"
+                >
+                  {isPaused ? <><Play size={14} /> Resume</> : <><Pause size={14} /> Pause</>}
+                </button>
+              )}
+              <button
+                onClick={() => setConfirmEnd(true)}
+                className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
+              >
+                End Workout
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -357,7 +358,7 @@ export default function FiveByFiveWorkout() {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-6 bg-radial-purple">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-radial-purple">
 
           {/* Planning state — exercise preview */}
           {status === 'planning' && (
