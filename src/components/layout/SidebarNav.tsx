@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Home, ScrollText, Calendar, Activity, BookOpen, LayoutTemplate, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
@@ -13,15 +15,33 @@ const navItems = [
 ]
 
 export default function SidebarNav() {
+  const [hasActiveWorkout, setHasActiveWorkout] = useState(false)
+
+  useEffect(() => {
+    async function check() {
+      const { data } = await supabase
+        .from('workouts')
+        .select('id')
+        .not('started_at', 'is', null)
+        .is('completed_at', null)
+        .limit(1)
+      setHasActiveWorkout((data?.length ?? 0) > 0)
+    }
+    check()
+  }, [])
+
   return (
     <nav className="flex flex-col items-center w-16 landscape:w-[76px] bg-card border-r border-border h-full pt-4 pb-6 gap-1 shrink-0">
       {/* Super Aimee Avatar */}
-      <div className="w-11 h-11 rounded-full mb-5 border-2 border-[#E91E8C] neon-glow overflow-hidden shrink-0">
+      <div className="relative w-11 h-11 rounded-full mb-5 border-2 border-[#E91E8C] neon-glow overflow-visible shrink-0">
         <img
           src="/images/super-aimee-circle-emblem.png"
           alt="Super Aimee"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-full overflow-hidden"
         />
+        {hasActiveWorkout && (
+          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#E91E8C] animate-pulse border-2 border-background" />
+        )}
       </div>
 
       {/* Nav Items */}
