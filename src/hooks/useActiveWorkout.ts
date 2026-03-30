@@ -105,7 +105,7 @@ export function useActiveWorkout(templateId?: string) {
 
       // No existing workout — create new
       const workoutType = templateId ? 'template' : 'freeform'
-      const insertPayload: Record<string, string> = { workout_type: workoutType }
+      const insertPayload: Record<string, string | null> = { workout_type: workoutType, started_at: null }
       if (templateId) insertPayload.template_id = templateId
 
       const { data, error } = await supabase

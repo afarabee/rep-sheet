@@ -133,7 +133,7 @@ export function use5x5Workout(label: 'A' | 'B') {
       const workoutType = label === 'A' ? 'five_by_five_a' : 'five_by_five_b'
       const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
-        .insert({ workout_type: workoutType })
+        .insert({ workout_type: workoutType, started_at: null })
         .select('id')
         .single()
 
