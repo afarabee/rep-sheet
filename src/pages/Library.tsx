@@ -12,7 +12,7 @@ const MUSCLE_GROUPS = [
   'chest', 'lats', 'middle back', 'lower back', 'shoulders', 'traps',
   'biceps', 'triceps', 'forearms',
   'quadriceps', 'hamstrings', 'glutes', 'calves', 'abductors', 'adductors',
-  'abdominals', 'neck',
+  'abdominals', 'neck', 'mobility',
 ]
 
 const EQUIPMENT_TYPES = [

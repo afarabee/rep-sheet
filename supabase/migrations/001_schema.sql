@@ -31,7 +31,7 @@ CREATE TABLE public.workouts (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   workout_type text NOT NULL,
   template_id uuid,
-  started_at timestamp with time zone DEFAULT now() NOT NULL,
+  started_at timestamp with time zone,
   completed_at timestamp with time zone,
   notes text
 );

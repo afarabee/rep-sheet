@@ -49,7 +49,7 @@ export function use5x5Workout(label: 'A' | 'B') {
       // Check for an existing in-progress 5x5 workout
       const { data: existing } = await supabase
         .from('workouts')
-        .select('id, workout_type')
+        .select('id, workout_type, started_at')
         .in('workout_type', ['five_by_five_a', 'five_by_five_b'])
         .not('started_at', 'is', null)
         .is('completed_at', null)
@@ -60,6 +60,12 @@ export function use5x5Workout(label: 'A' | 'B') {
         // Resume existing workout
         const wid = existing.id
         setWorkoutId(wid)
+
+        // Restore elapsed time from started_at
+        if (existing.started_at) {
+          const elapsed = Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000)
+          setElapsedSeconds(Math.max(0, elapsed))
+        }
 
         const [weResult, weightsResult] = await Promise.all([
           supabase
@@ -133,7 +139,7 @@ export function use5x5Workout(label: 'A' | 'B') {
       const workoutType = label === 'A' ? 'five_by_five_a' : 'five_by_five_b'
       const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
-        .insert({ workout_type: workoutType })
+        .insert({ workout_type: workoutType, started_at: null })
         .select('id')
         .single()
 
