@@ -50,7 +50,7 @@ export function useActiveWorkout(templateId?: string) {
       // Check for an existing in-progress freeform/template workout
       const { data: existing } = await supabase
         .from('workouts')
-        .select('id')
+        .select('id, started_at')
         .in('workout_type', ['freeform', 'template'])
         .not('started_at', 'is', null)
         .is('completed_at', null)
@@ -61,6 +61,12 @@ export function useActiveWorkout(templateId?: string) {
         // Resume existing workout
         const wid = existing.id
         setWorkoutId(wid)
+
+        // Restore elapsed time from started_at
+        if (existing.started_at) {
+          const elapsed = Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000)
+          setElapsedSeconds(Math.max(0, elapsed))
+        }
 
         const { data: weData } = await supabase
           .from('workout_exercises')
