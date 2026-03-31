@@ -117,5 +117,28 @@ export function useWorkoutHistory() {
     loadDetail()
   }, [selectedId])
 
-  return { workouts, loading, selectedId, setSelectedId, detail, detailLoading }
+  async function deleteWorkout(workoutId: string) {
+    // Fetch workout_exercise IDs to delete their sets first
+    const { data: weData } = await supabase
+      .from('workout_exercises')
+      .select('id')
+      .eq('workout_id', workoutId)
+
+    if (weData && weData.length > 0) {
+      const weIds = weData.map((we) => we.id)
+      await supabase.from('workout_sets').delete().in('workout_exercise_id', weIds)
+    }
+
+    await supabase.from('workout_exercises').delete().eq('workout_id', workoutId)
+    await supabase.from('ab_circuit_logs').delete().eq('workout_id', workoutId)
+    await supabase.from('workouts').delete().eq('id', workoutId)
+
+    setWorkouts((prev) => prev.filter((w) => w.id !== workoutId))
+    if (selectedId === workoutId) {
+      setSelectedId(null)
+      setDetail(null)
+    }
+  }
+
+  return { workouts, loading, selectedId, setSelectedId, detail, detailLoading, deleteWorkout }
 }

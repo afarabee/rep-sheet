@@ -127,6 +127,26 @@ export function useExercises() {
     setExercises((prev) => [newRow as Exercise, ...prev])
   }
 
+  async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description'>>) {
+    const prev = exercises.find((ex) => ex.id === id)
+    if (!prev) return
+    // Optimistic update
+    setExercises((list) =>
+      list.map((ex) => (ex.id === id ? { ...ex, ...fields } : ex))
+    )
+    const { error } = await supabase
+      .from('exercises')
+      .update(fields)
+      .eq('id', id)
+    if (error) {
+      // Revert
+      setExercises((list) =>
+        list.map((ex) => (ex.id === id ? prev : ex))
+      )
+      throw new Error(error.message)
+    }
+  }
+
   async function deactivateExercise(id: string) {
     // Optimistic update
     setExercises((prev) =>
@@ -140,6 +160,23 @@ export function useExercises() {
       // Revert
       setExercises((prev) =>
         prev.map((ex) => (ex.id === id ? { ...ex, is_active: true } : ex))
+      )
+    }
+  }
+
+  async function reactivateExercise(id: string) {
+    // Optimistic update
+    setExercises((prev) =>
+      prev.map((ex) => (ex.id === id ? { ...ex, is_active: true } : ex))
+    )
+    const { error } = await supabase
+      .from('exercises')
+      .update({ is_active: true })
+      .eq('id', id)
+    if (error) {
+      // Revert
+      setExercises((prev) =>
+        prev.map((ex) => (ex.id === id ? { ...ex, is_active: false } : ex))
       )
     }
   }
@@ -160,6 +197,8 @@ export function useExercises() {
     setBodyweightOnly,
     toggleFavorite,
     addCustomExercise,
+    updateExercise,
     deactivateExercise,
+    reactivateExercise,
   }
 }
