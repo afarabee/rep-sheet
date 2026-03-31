@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, ScrollText, Calendar, Target, Activity, BookOpen, LayoutTemplate, Settings, Dumbbell, GripVertical } from 'lucide-react'
+import { Home, ScrollText, Calendar, Target, Activity, BookOpen, LayoutTemplate, Settings, Dumbbell, GripVertical, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import {
@@ -33,6 +33,7 @@ const defaultNavItems: NavItem[] = [
   { to: '/history', label: 'History', Icon: ScrollText, end: false },
   { to: '/calendar', label: 'Calendar', Icon: Calendar, end: false },
   { to: '/goals', label: 'Goals', Icon: Target, end: false },
+  { to: '/progress', label: 'Progress', Icon: TrendingUp, end: false },
   { to: '/body-comp', label: 'Body', Icon: Activity, end: false },
   { to: '/library', label: 'Exercises', Icon: BookOpen, end: false },
   { to: '/templates', label: 'Templates', Icon: LayoutTemplate, end: false },
