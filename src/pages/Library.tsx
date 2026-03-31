@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Star, Search, Plus, X, ChevronDown, Check } from 'lucide-react'
+import { Star, Search, Plus, X, ChevronDown, Check, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -41,9 +41,10 @@ interface ExerciseRowProps {
   exercise: Exercise
   onToggleFavorite: (id: string, current: boolean) => Promise<void>
   onDeactivate: (id: string) => Promise<void>
+  onEdit: (exercise: Exercise) => void
 }
 
-function ExerciseRow({ exercise, onToggleFavorite, onDeactivate }: ExerciseRowProps) {
+function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onEdit }: ExerciseRowProps) {
   const [showActions, setShowActions] = useState(false)
   const isInactive = !exercise.is_active
 
@@ -128,13 +129,22 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate }: ExerciseRowPr
               </button>
             </>
           ) : (
-            <button
-              onClick={() => setShowActions(true)}
-              className="p-1.5 rounded text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
-              aria-label="More options"
-            >
-              <ChevronDown size={14} />
-            </button>
+            <>
+              <button
+                onClick={() => onEdit(exercise)}
+                className="p-1.5 rounded text-[#3D2E5C] hover:text-[#00E5FF] hover:bg-[#241838] transition-colors"
+                aria-label="Edit exercise"
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                onClick={() => setShowActions(true)}
+                className="p-1.5 rounded text-[#3D2E5C] hover:text-[#9B8FB0] hover:bg-[#241838] transition-colors"
+                aria-label="More options"
+              >
+                <ChevronDown size={14} />
+              </button>
+            </>
           )}
         </div>
       )}
@@ -160,11 +170,15 @@ export default function Library() {
     setBodyweightOnly,
     toggleFavorite,
     addCustomExercise,
+    updateExercise,
     deactivateExercise,
   } = useExercises()
 
-  // Add custom form state
+  // Form state (shared between add and edit)
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
+  const isEditing = editingExercise !== null
+  const showForm = showAddForm || isEditing
   const [formName, setFormName] = useState('')
   const [formMuscleGroup, setFormMuscleGroup] = useState('')
   const [formEquipmentType, setFormEquipmentType] = useState('')
@@ -174,6 +188,7 @@ export default function Library() {
 
   function handleCancelForm() {
     setShowAddForm(false)
+    setEditingExercise(null)
     setFormName('')
     setFormMuscleGroup('')
     setFormEquipmentType('')
@@ -182,18 +197,37 @@ export default function Library() {
     setFormSaving(false)
   }
 
+  function handleEdit(exercise: Exercise) {
+    setEditingExercise(exercise)
+    setShowAddForm(false)
+    setFormName(exercise.name)
+    setFormMuscleGroup(exercise.muscle_group ?? '')
+    setFormEquipmentType(exercise.equipment_type ?? '')
+    setFormDescription(exercise.description ?? '')
+    setFormError(null)
+  }
+
   async function handleSaveForm() {
     if (!formName.trim() || !formMuscleGroup) return
     setFormSaving(true)
     setFormError(null)
     try {
-      const data: NewExercise = {
-        name: formName.trim(),
-        muscle_group: formMuscleGroup,
-        equipment_type: formEquipmentType || 'other',
-        description: formDescription.trim() || undefined,
+      if (isEditing) {
+        await updateExercise(editingExercise.id, {
+          name: formName.trim(),
+          muscle_group: formMuscleGroup,
+          equipment_type: formEquipmentType || 'other',
+          description: formDescription.trim() || null,
+        })
+      } else {
+        const data: NewExercise = {
+          name: formName.trim(),
+          muscle_group: formMuscleGroup,
+          equipment_type: formEquipmentType || 'other',
+          description: formDescription.trim() || undefined,
+        }
+        await addCustomExercise(data)
       }
-      await addCustomExercise(data)
       handleCancelForm()
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Failed to save exercise')
@@ -260,11 +294,11 @@ export default function Library() {
         </Button>
       </div>
 
-      {/* ── Add Custom Form ── */}
-      {showAddForm && (
+      {/* ── Add / Edit Form ── */}
+      {showForm && (
         <div className="border-b border-border bg-card px-8 py-5">
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5E5278] mb-4">
-            New Custom Exercise
+            {isEditing ? 'Edit Exercise' : 'New Custom Exercise'}
           </div>
           <div className="grid grid-cols-[2fr_1fr_1fr] gap-3 mb-3">
             <div className="flex flex-col gap-1.5">
@@ -323,7 +357,7 @@ export default function Library() {
               disabled={formSaving || !formName.trim() || !formMuscleGroup}
               className="bg-[#E91E8C] text-white hover:bg-[#E91E8C]/80 disabled:opacity-50"
             >
-              {formSaving ? 'Saving…' : 'Save Exercise'}
+              {formSaving ? 'Saving…' : isEditing ? 'Save Changes' : 'Save Exercise'}
             </Button>
           </div>
         </div>
@@ -455,6 +489,7 @@ export default function Library() {
                     exercise={ex}
                     onToggleFavorite={toggleFavorite}
                     onDeactivate={deactivateExercise}
+                    onEdit={handleEdit}
                   />
                 ))}
               </>
@@ -469,6 +504,7 @@ export default function Library() {
                     exercise={ex}
                     onToggleFavorite={toggleFavorite}
                     onDeactivate={deactivateExercise}
+                    onEdit={handleEdit}
                   />
                 ))}
               </>
