@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import type { WorkoutSummary, WorkoutDetail } from '@/hooks/useWorkoutHistory'
@@ -87,7 +89,8 @@ function WorkoutCard({ workout, isSelected, onClick }: {
 
 // ─── Right pane: workout detail ────────────────────────────────────────────────
 
-function WorkoutDetailView({ detail }: { detail: WorkoutDetail }) {
+function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDelete: (id: string) => void }) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const duration = formatDuration(detail.started_at, detail.completed_at)
 
   return (
@@ -126,6 +129,35 @@ function WorkoutDetailView({ detail }: { detail: WorkoutDetail }) {
             {detail.notes}
           </p>
         )}
+
+        {/* Delete button */}
+        <div className="mt-4">
+          {!confirmingDelete ? (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:border-[#FF4D6A] hover:text-[#FF4D6A] transition-all duration-150"
+            >
+              <Trash2 size={12} />
+              Delete Workout
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { onDelete(detail.id); setConfirmingDelete(false) }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FF4D6A] bg-[#FF4D6A]/10 text-xs font-bold text-[#FF4D6A] hover:bg-[#FF4D6A]/20 transition-all duration-150"
+              >
+                <Trash2 size={12} />
+                Confirm Delete
+              </button>
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:text-foreground transition-all duration-150"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Exercises */}
@@ -174,7 +206,7 @@ function WorkoutDetailView({ detail }: { detail: WorkoutDetail }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function History() {
-  const { workouts, loading, selectedId, setSelectedId, detail, detailLoading } = useWorkoutHistory()
+  const { workouts, loading, selectedId, setSelectedId, detail, detailLoading, deleteWorkout } = useWorkoutHistory()
 
   return (
     <div className="h-full flex flex-row overflow-hidden">
@@ -227,7 +259,7 @@ export default function History() {
         )}
 
         {selectedId && !detailLoading && detail && (
-          <WorkoutDetailView detail={detail} />
+          <WorkoutDetailView detail={detail} onDelete={deleteWorkout} />
         )}
       </div>
     </div>
