@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { useExercises } from '@/hooks/useExercises'
 
 interface ExercisePickerProps {
-  onAdd: (exerciseId: string, name: string) => void
+  onAdd: (exerciseId: string, name: string, equipmentType: string | null) => void
   onClose: () => void
   alreadyAddedIds: string[]
 }
@@ -19,6 +19,8 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     setSearchQuery,
     myEquipmentOnly,
     setMyEquipmentOnly,
+    bodyweightOnly,
+    setBodyweightOnly,
     selectedMuscleGroups,
     setSelectedMuscleGroups,
   } = useExercises()
@@ -97,6 +99,17 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
           <Dumbbell size={12} />
           My gym
         </button>
+        <button
+          onClick={() => setBodyweightOnly((v) => !v)}
+          className={cn(
+            'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all',
+            bodyweightOnly
+              ? 'border-[#7DFFC4] text-[#7DFFC4] bg-[#7DFFC4]/10'
+              : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+          )}
+        >
+          Bodyweight
+        </button>
       </div>
 
       {/* Muscle group chips */}
@@ -145,7 +158,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
           return (
             <div
               key={ex.id}
-              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name) }}
+              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type) }}
               className={cn(
                 'flex items-center gap-3 px-6 py-3 border-b border-border min-h-[52px] transition-colors',
                 alreadyAdded

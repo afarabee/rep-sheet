@@ -123,6 +123,7 @@ export default function FiveByFiveWorkout() {
   const activeExercise = exercises[activeExerciseIndex] ?? null
   const isCurrentComplete = activeExercise ? activeExercise.sets.length >= 5 : false
   const nextSetNumber = Math.min((activeExercise?.sets.length ?? 0) + 1, 5)
+  const isBodyweight = activeExercise?.equipment_type === 'bodyweight'
 
   // Progressive overload suggestion — show when all 5 sets had reps >= 5
   const allSetsSuccessful = isCurrentComplete &&
@@ -352,7 +353,7 @@ export default function FiveByFiveWorkout() {
       {showPicker ? (
         <div className="flex-1 overflow-hidden">
           <ExercisePicker
-            onAdd={(exerciseId, name) => addExercise(exerciseId, name)}
+            onAdd={(exerciseId, name, equipmentType) => addExercise(exerciseId, name, equipmentType)}
             onClose={() => setShowPicker(false)}
             alreadyAddedIds={alreadyAddedIds}
           />
@@ -668,7 +669,9 @@ export default function FiveByFiveWorkout() {
                     Log Set {nextSetNumber} of 5
                   </div>
                   <div className="flex gap-6 items-end">
-                    <NumericInput label="Weight (lbs)" value={weightInput} onChange={setWeightInput} step={5} placeholder="—" />
+                    {!isBodyweight && (
+                      <NumericInput label="Weight (lbs)" value={weightInput} onChange={setWeightInput} step={5} placeholder="—" />
+                    )}
                     <NumericInput label="Reps" value={repsInput} onChange={setRepsInput} step={1} placeholder="5" />
                     <button
                       onClick={handleLogSet}
@@ -677,12 +680,14 @@ export default function FiveByFiveWorkout() {
                       Log Set
                     </button>
                   </div>
-                  <button
-                    onClick={() => setWeightInput('')}
-                    className="mt-3 text-[11px] text-[#5E5278] hover:text-[#9B8FB0] transition-colors underline-offset-2 hover:underline"
-                  >
-                    Bodyweight (no weight)
-                  </button>
+                  {!isBodyweight && (
+                    <button
+                      onClick={() => setWeightInput('')}
+                      className="mt-3 text-[11px] text-[#5E5278] hover:text-[#9B8FB0] transition-colors underline-offset-2 hover:underline"
+                    >
+                      Bodyweight (no weight)
+                    </button>
+                  )}
                 </div>
               )}
 
