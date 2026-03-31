@@ -164,6 +164,23 @@ export function useExercises() {
     }
   }
 
+  async function reactivateExercise(id: string) {
+    // Optimistic update
+    setExercises((prev) =>
+      prev.map((ex) => (ex.id === id ? { ...ex, is_active: true } : ex))
+    )
+    const { error } = await supabase
+      .from('exercises')
+      .update({ is_active: true })
+      .eq('id', id)
+    if (error) {
+      // Revert
+      setExercises((prev) =>
+        prev.map((ex) => (ex.id === id ? { ...ex, is_active: false } : ex))
+      )
+    }
+  }
+
   return {
     exercises: filteredExercises,
     allExercises: exercises,
@@ -182,5 +199,6 @@ export function useExercises() {
     addCustomExercise,
     updateExercise,
     deactivateExercise,
+    reactivateExercise,
   }
 }

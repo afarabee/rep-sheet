@@ -41,10 +41,11 @@ interface ExerciseRowProps {
   exercise: Exercise
   onToggleFavorite: (id: string, current: boolean) => Promise<void>
   onDeactivate: (id: string) => Promise<void>
+  onReactivate: (id: string) => Promise<void>
   onEdit: (exercise: Exercise) => void
 }
 
-function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onEdit }: ExerciseRowProps) {
+function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, onEdit }: ExerciseRowProps) {
   const [showActions, setShowActions] = useState(false)
   const isInactive = !exercise.is_active
 
@@ -108,7 +109,16 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onEdit }: Exerc
       </div>
 
       {/* Right actions */}
-      {!isInactive && (
+      {isInactive ? (
+        <div className="shrink-0">
+          <button
+            onClick={() => onReactivate(exercise.id)}
+            className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-[#7DFFC4]/15 text-[#7DFFC4] hover:bg-[#7DFFC4]/25 transition-colors"
+          >
+            Reactivate
+          </button>
+        </div>
+      ) : (
         <div className="shrink-0 flex items-center gap-1">
           {showActions ? (
             <>
@@ -172,6 +182,7 @@ export default function Library() {
     addCustomExercise,
     updateExercise,
     deactivateExercise,
+    reactivateExercise,
   } = useExercises()
 
   // Form state (shared between add and edit)
@@ -489,6 +500,7 @@ export default function Library() {
                     exercise={ex}
                     onToggleFavorite={toggleFavorite}
                     onDeactivate={deactivateExercise}
+                    onReactivate={reactivateExercise}
                     onEdit={handleEdit}
                   />
                 ))}
@@ -504,6 +516,7 @@ export default function Library() {
                     exercise={ex}
                     onToggleFavorite={toggleFavorite}
                     onDeactivate={deactivateExercise}
+                    onReactivate={reactivateExercise}
                     onEdit={handleEdit}
                   />
                 ))}
