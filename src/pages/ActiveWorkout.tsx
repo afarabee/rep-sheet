@@ -149,6 +149,7 @@ export default function ActiveWorkout() {
 
   const alreadyAddedIds = workoutExercises.map((ex) => ex.exercise_id)
   const nextSetNumber = (activeExercise?.sets.length ?? 0) + 1
+  const isBodyweight = activeExercise?.equipment_type === 'bodyweight'
 
   if (error) {
     return (
@@ -280,7 +281,7 @@ export default function ActiveWorkout() {
       {showPicker ? (
         <div className="flex-1 overflow-hidden">
           <ExercisePicker
-            onAdd={(exerciseId, name) => addExercise(exerciseId, name)}
+            onAdd={(exerciseId, name, equipmentType) => addExercise(exerciseId, name, equipmentType)}
             onClose={() => setShowPicker(false)}
             alreadyAddedIds={alreadyAddedIds}
           />
@@ -377,13 +378,15 @@ export default function ActiveWorkout() {
                 </div>
 
                 <div className="flex gap-6 items-end">
-                  <NumericInput
-                    label="Weight (lbs)"
-                    value={weightInput}
-                    onChange={setWeightInput}
-                    step={5}
-                    placeholder="—"
-                  />
+                  {!isBodyweight && (
+                    <NumericInput
+                      label="Weight (lbs)"
+                      value={weightInput}
+                      onChange={setWeightInput}
+                      step={5}
+                      placeholder="—"
+                    />
+                  )}
                   <NumericInput
                     label="Reps"
                     value={repsInput}
@@ -401,13 +404,15 @@ export default function ActiveWorkout() {
                   </button>
                 </div>
 
-                {/* Bodyweight toggle */}
-                <button
-                  onClick={() => setWeightInput('')}
-                  className="mt-3 text-[11px] text-[#5E5278] hover:text-[#9B8FB0] transition-colors underline-offset-2 hover:underline"
-                >
-                  Bodyweight (no weight)
-                </button>
+                {/* Bodyweight toggle — hidden for bodyweight exercises */}
+                {!isBodyweight && (
+                  <button
+                    onClick={() => setWeightInput('')}
+                    className="mt-3 text-[11px] text-[#5E5278] hover:text-[#9B8FB0] transition-colors underline-offset-2 hover:underline"
+                  >
+                    Bodyweight (no weight)
+                  </button>
+                )}
               </div>
 
               {/* Set History */}

@@ -156,6 +156,8 @@ export default function Library() {
     setSelectedMuscleGroups,
     myEquipmentOnly,
     setMyEquipmentOnly,
+    bodyweightOnly,
+    setBodyweightOnly,
     toggleFavorite,
     addCustomExercise,
     deactivateExercise,
@@ -363,25 +365,46 @@ export default function Library() {
 
         {/* Equipment toggle + result count */}
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => setMyEquipmentOnly((v) => !v)}
-            className={cn(
-              'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150',
-              myEquipmentOnly
-                ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 cyan-glow'
-                : 'border-border text-[#5E5278] bg-card hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
-            )}
-          >
-            <span
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMyEquipmentOnly((v) => !v)}
               className={cn(
-                'size-3.5 rounded-sm border flex items-center justify-center shrink-0',
-                myEquipmentOnly ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
+                'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150',
+                myEquipmentOnly
+                  ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 cyan-glow'
+                  : 'border-border text-[#5E5278] bg-card hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
               )}
             >
-              {myEquipmentOnly && <Check size={9} className="text-[#0F0A1A]" />}
-            </span>
-            My gym only
-          </button>
+              <span
+                className={cn(
+                  'size-3.5 rounded-sm border flex items-center justify-center shrink-0',
+                  myEquipmentOnly ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
+                )}
+              >
+                {myEquipmentOnly && <Check size={9} className="text-[#0F0A1A]" />}
+              </span>
+              My gym only
+            </button>
+            <button
+              onClick={() => setBodyweightOnly((v) => !v)}
+              className={cn(
+                'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150',
+                bodyweightOnly
+                  ? 'border-[#7DFFC4] text-[#7DFFC4] bg-[#7DFFC4]/10'
+                  : 'border-border text-[#5E5278] bg-card hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+              )}
+            >
+              <span
+                className={cn(
+                  'size-3.5 rounded-sm border flex items-center justify-center shrink-0',
+                  bodyweightOnly ? 'border-[#7DFFC4] bg-[#7DFFC4]' : 'border-[#5E5278]'
+                )}
+              >
+                {bodyweightOnly && <Check size={9} className="text-[#0F0A1A]" />}
+              </span>
+              Bodyweight
+            </button>
+          </div>
 
           <span className="text-xs text-[#5E5278]">
             {exercises.length === allExercises.length
