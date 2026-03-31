@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useSettings, type ProgramSettings } from '@/hooks/useSettings'
 import { useEquipment, EQUIPMENT_TYPES } from '@/hooks/useEquipment'
-import { Timer, TrendingUp, Dumbbell, Key, Download, Loader2, Package, X, Check } from 'lucide-react'
+import { loadNavOrder, saveNavOrder, resetNavOrder, defaultNavItems } from '@/lib/navOrder'
+import type { NavItem } from '@/lib/navOrder'
+import { Timer, TrendingUp, Dumbbell, Key, Download, Loader2, Package, X, Check, ChevronUp, ChevronDown, RotateCcw, PanelLeft } from 'lucide-react'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type Section = 'equipment' | 'rest' | 'increments' | 'weights' | 'apikey' | 'export'
+type Section = 'equipment' | 'rest' | 'increments' | 'weights' | 'apikey' | 'export' | 'nav'
 
 const NAV: Array<{ id: Section; label: string; Icon: React.ElementType }> = [
+  { id: 'nav',        label: 'Left-Hand Nav', Icon: PanelLeft   },
   { id: 'equipment',  label: 'Equipment',      Icon: Package    },
   { id: 'rest',       label: 'Rest Timer',     Icon: Timer      },
   { id: 'increments', label: '5×5 Increments', Icon: TrendingUp },
@@ -241,6 +244,83 @@ function ExportSection({ onExport }: { onExport: () => Promise<void> }) {
   )
 }
 
+// ─── Nav Order section ─────────────────────────────────────────────────────────
+
+function NavOrderSection() {
+  const [items, setItems] = useState<NavItem[]>(loadNavOrder)
+  const [saved, setSaved] = useState(false)
+
+  function move(index: number, direction: -1 | 1) {
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    const next = [...items]
+    const temp = next[index]
+    next[index] = next[target]
+    next[target] = temp
+    setItems(next)
+    saveNavOrder(next)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
+  function handleReset() {
+    resetNavOrder()
+    setItems([...defaultNavItems])
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        title="Left-Hand Nav"
+        subtitle="Reorder the tabs in the sidebar. Changes apply immediately."
+      />
+
+      <div className="flex flex-col gap-0.5 mb-6">
+        {items.map((item, i) => (
+          <div
+            key={item.to}
+            className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#241838] border border-[#2A2040]"
+          >
+            <item.Icon size={16} className="text-[#9B8FB0] shrink-0" />
+            <span className="flex-1 text-sm font-semibold text-foreground">{item.label}</span>
+            <div className="flex gap-1">
+              <button
+                onClick={() => move(i, -1)}
+                disabled={i === 0}
+                className="p-1.5 rounded-lg transition-colors disabled:opacity-20 text-[#9B8FB0] hover:bg-[#1A1028] hover:text-[#F0EAF4]"
+                aria-label={`Move ${item.label} up`}
+              >
+                <ChevronUp size={16} />
+              </button>
+              <button
+                onClick={() => move(i, 1)}
+                disabled={i === items.length - 1}
+                className="p-1.5 rounded-lg transition-colors disabled:opacity-20 text-[#9B8FB0] hover:bg-[#1A1028] hover:text-[#F0EAF4]"
+                aria-label={`Move ${item.label} down`}
+              >
+                <ChevronDown size={16} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleReset}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#2A2040] text-sm text-[#9B8FB0] hover:bg-[#241838] hover:text-[#F0EAF4] transition-colors"
+        >
+          <RotateCcw size={14} />
+          Reset to default
+        </button>
+        <SavedBadge visible={saved} />
+      </div>
+    </div>
+  )
+}
+
 // ─── Equipment section ─────────────────────────────────────────────────────────
 
 function EquipmentSection() {
@@ -373,6 +453,7 @@ export default function Settings() {
 
   function renderSection() {
     switch (activeSection) {
+      case 'nav':        return <NavOrderSection />
       case 'equipment':  return <EquipmentSection />
       case 'rest':       return <RestTimerSection settings={settings} onSave={(f, v) => saveSetting(f, v)} />
       case 'increments': return <IncrementsSection settings={settings} onSave={(f, v) => saveSetting(f, v)} />
