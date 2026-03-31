@@ -10,6 +10,7 @@ import ActiveWorkout from '@/pages/ActiveWorkout'
 import Templates from '@/pages/Templates'
 import FiveByFiveSetup from '@/pages/FiveByFiveSetup'
 import FiveByFiveWorkout from '@/pages/FiveByFiveWorkout'
+import Goals from '@/pages/Goals'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/body-comp" element={<BodyComp />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/library" element={<Library />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/workout/active" element={<ActiveWorkout />} />
