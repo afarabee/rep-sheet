@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, ScrollText, Calendar, Target, Activity, BookOpen, LayoutTemplate, Settings, Dumbbell, GripVertical, TrendingUp } from 'lucide-react'
+import { Home, ScrollText, Calendar, Target, Activity, BookOpen, LayoutTemplate, Settings, Dumbbell, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import {
@@ -96,18 +96,7 @@ function SortableNavItem({ item }: { item: NavItem }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="w-full relative group">
-      {/* Drag handle — visible on hover / during drag */}
-      <button
-        {...attributes}
-        {...listeners}
-        className="absolute -left-0.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-60 focus:opacity-60 transition-opacity z-10 touch-none"
-        tabIndex={-1}
-        aria-label={`Drag ${item.label}`}
-      >
-        <GripVertical size={10} className="text-muted-foreground" />
-      </button>
-
+    <div ref={setNodeRef} style={style} className="w-full" {...attributes} {...listeners}>
       <NavLink
         to={item.to}
         end={item.end}
@@ -153,8 +142,8 @@ export default function SidebarNav() {
 
   // Require a small drag distance before starting, so taps still navigate
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 5 } }),
   )
 
   function handleDragEnd(event: DragEndEvent) {
