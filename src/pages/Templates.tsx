@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTemplates } from '@/hooks/useTemplates'
+import { use5x5Config } from '@/hooks/use5x5Config'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import MobileBackButton from '@/components/layout/MobileBackButton'
@@ -66,6 +67,8 @@ export default function Templates() {
   const [draftExercises, setDraftExercises] = useState<DraftExercise[]>([])
   const [draftKey, setDraftKey] = useState(0)  // incrementing key for list identity
 
+  const [selected5x5, setSelected5x5] = useState<'A' | 'B' | null>(null)
+
   const {
     templates,
     loading,
@@ -84,9 +87,21 @@ export default function Templates() {
     reorderExercise,
   } = useTemplates()
 
+  const {
+    configA,
+    configB,
+    loading: configLoading,
+    addExercise: add5x5Exercise,
+    removeExercise: remove5x5Exercise,
+    reorderExercise: reorder5x5Exercise,
+  } = use5x5Config()
+
+  const active5x5Config = selected5x5 === 'A' ? configA : selected5x5 === 'B' ? configB : []
+
   function handleStartCreating() {
     setCreating(true)
     setSelectedId(null)
+    setSelected5x5(null)
     setDraftName('')
     setDraftExercises([])
     setShowPicker(false)
@@ -141,7 +156,9 @@ export default function Templates() {
 
   const alreadyAddedIds = creating
     ? draftExercises.map((e) => e.exercise_id)
-    : detail?.exercises.map((e) => e.exercise_id) ?? []
+    : selected5x5
+      ? active5x5Config.map((e) => e.exercise_id)
+      : detail?.exercises.map((e) => e.exercise_id) ?? []
 
   return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
@@ -149,7 +166,7 @@ export default function Templates() {
       {/* ── Left Pane ── */}
       <div className={cn(
         'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
-        isMobile && (showDetail || creating) && 'hidden'
+        isMobile && (showDetail || creating || selected5x5) && 'hidden'
       )}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
@@ -172,7 +189,48 @@ export default function Templates() {
             </div>
           )}
 
-          {!loading && templates.length === 0 && !creating && (
+          {/* 5×5 Workout entries */}
+          {!configLoading && (
+            <>
+              {(['A', 'B'] as const).map((label) => {
+                const config = label === 'A' ? configA : configB
+                const isSelected = selected5x5 === label && !selectedId && !creating
+                return (
+                  <div
+                    key={`5x5-${label}`}
+                    onClick={() => { setSelected5x5(label); setSelectedId(null); setCreating(false); setShowPicker(false); setShowDetail(true) }}
+                    className={cn(
+                      'p-4 rounded-xl mb-1.5 cursor-pointer transition-all duration-150 border-l-2',
+                      isSelected
+                        ? 'bg-[#241838] border-[#00E5FF]'
+                        : 'border-transparent hover:bg-[#1A1028]/80'
+                    )}
+                    style={isSelected ? { boxShadow: 'inset 0 0 20px rgba(0,229,255,0.06)' } : {}}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={cn('text-sm font-bold', isSelected ? 'text-foreground' : 'text-[#9B8FB0]')}>
+                        5×5 Workout {label}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#00E5FF]/15 text-[#00E5FF]">
+                        5×5
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#5E5278] mt-0.5">
+                      {config.length} exercise{config.length !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {templates.length > 0 && (
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[#3D2E5C] px-2 pt-3 pb-1">
+                  Custom Templates
+                </div>
+              )}
+            </>
+          )}
+
+          {!loading && templates.length === 0 && !creating && configA.length === 0 && configB.length === 0 && (
             <div className="py-12 text-center">
               <p className="text-sm text-[#5E5278]">No templates yet.</p>
               <button
@@ -189,8 +247,8 @@ export default function Templates() {
               key={t.id}
               name={t.name}
               exerciseCount={t.exercise_count}
-              isSelected={t.id === selectedId}
-              onClick={() => { setSelectedId(t.id); setCreating(false); setShowPicker(false); setShowDetail(true) }}
+              isSelected={t.id === selectedId && !selected5x5}
+              onClick={() => { setSelectedId(t.id); setSelected5x5(null); setCreating(false); setShowPicker(false); setShowDetail(true) }}
               onDelete={() => deleteTemplate(t.id)}
             />
           ))}
@@ -200,7 +258,7 @@ export default function Templates() {
       {/* ── Right Pane ── */}
       <div className={cn(
         'flex-1 overflow-hidden flex',
-        isMobile && !showDetail && !creating && 'hidden'
+        isMobile && !showDetail && !creating && !selected5x5 && 'hidden'
       )}>
 
         {/* Detail / create area */}
@@ -208,11 +266,11 @@ export default function Templates() {
 
           {/* Mobile back button */}
           {isMobile && (showDetail || creating) && (
-            <MobileBackButton onBack={() => { setShowDetail(false); setCreating(false); setShowPicker(false) }} />
+            <MobileBackButton onBack={() => { setShowDetail(false); setCreating(false); setSelected5x5(null); setShowPicker(false) }} />
           )}
 
           {/* Empty state */}
-          {!selectedId && !creating && (
+          {!selectedId && !selected5x5 && !creating && (
             <div className="h-full flex flex-col items-center justify-center gap-5">
               <p className="text-sm text-[#5E5278]">Select a template or create a new one.</p>
               <button
@@ -220,6 +278,96 @@ export default function Templates() {
                 className="px-8 py-3 rounded-xl border-2 border-[#E91E8C] text-[#E91E8C] font-black uppercase tracking-[0.15em] text-sm neon-glow transition-all hover:bg-[#E91E8C]/10"
               >
                 + New Template
+              </button>
+            </div>
+          )}
+
+          {/* ── 5×5 Config detail ── */}
+          {selected5x5 && !creating && (
+            <div className="max-w-2xl">
+              <div className="flex items-start justify-between mb-6 gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#00E5FF] text-cyan-glow">
+                      5×5 Program
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#00E5FF]/15 text-[#00E5FF]">
+                      5×5
+                    </span>
+                  </div>
+                  <h1
+                    className="font-display text-3xl uppercase leading-tight"
+                    style={{
+                      background: 'linear-gradient(135deg, #F0EAF4 0%, #00E5FF 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
+                  >
+                    Workout {selected5x5}
+                  </h1>
+                </div>
+                <button
+                  onClick={() => navigate(`/workout/5x5/active?label=${selected5x5}`)}
+                  disabled={active5x5Config.length === 0}
+                  className="shrink-0 px-6 py-3 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-sm font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Start Workout
+                </button>
+              </div>
+
+              {active5x5Config.length === 0 && (
+                <div className="py-10 text-center border border-dashed border-[#3D2E5C] rounded-2xl mb-4">
+                  <p className="text-sm text-[#5E5278]">No exercises configured.</p>
+                  <button
+                    onClick={() => setShowPicker(true)}
+                    className="mt-2 text-xs text-[#00E5FF] hover:underline"
+                  >
+                    Add exercises →
+                  </button>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 mb-4">
+                {active5x5Config.map((ex, i) => (
+                  <div key={ex.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button
+                        onClick={() => reorder5x5Exercise(selected5x5, ex.id, 'up')}
+                        disabled={i === 0}
+                        className="p-1 rounded text-[#3D2E5C] hover:text-[#9B8FB0] disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => reorder5x5Exercise(selected5x5, ex.id, 'down')}
+                        disabled={i === active5x5Config.length - 1}
+                        className="p-1 rounded text-[#3D2E5C] hover:text-[#9B8FB0] disabled:opacity-20 transition-colors"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-foreground truncate">{ex.name}</div>
+                    </div>
+                    <div className="shrink-0 text-[11px] font-bold text-[#00E5FF]">
+                      5 × 5
+                    </div>
+                    <button
+                      onClick={() => remove5x5Exercise(ex.id, selected5x5)}
+                      className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowPicker(true)}
+                className="w-full py-3 rounded-xl border border-dashed border-[#3D2E5C] text-[#5E5278] text-sm font-semibold uppercase tracking-wider transition-all hover:border-[#00E5FF] hover:text-[#00E5FF] hover:bg-[#00E5FF]/5"
+              >
+                + Add Exercise
               </button>
             </div>
           )}
@@ -462,12 +610,14 @@ export default function Templates() {
         </div>
 
         {/* Exercise picker panel */}
-        {showPicker && (creating || detail) && (
+        {showPicker && (creating || detail || selected5x5) && (
           <div className="w-full md:w-96 md:shrink-0 border-l border-border overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name) => {
                 if (creating) {
                   draftAddExercise(exerciseId, name)
+                } else if (selected5x5) {
+                  add5x5Exercise(selected5x5, exerciseId, name)
                 } else if (detail) {
                   addExercise(detail.id, exerciseId, name)
                 }
