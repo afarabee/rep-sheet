@@ -1,12 +1,23 @@
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Trash2, Search, LayoutTemplate, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
 import type { WorkoutSummary, WorkoutDetail } from '@/hooks/useWorkoutHistory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const WORKOUT_TYPES = [
+  { value: 'all', label: 'All' },
+  { value: 'five_by_five_a', label: '5×5 A' },
+  { value: 'five_by_five_b', label: '5×5 B' },
+  { value: 'freeform', label: 'Freeform' },
+  { value: 'template', label: 'Template' },
+  { value: 'stretch', label: 'Stretch' },
+]
 
 function formatWorkoutType(type: string): string {
   switch (type) {
@@ -93,8 +104,41 @@ function WorkoutCard({ workout, isSelected, onClick }: {
 // ─── Right pane: workout detail ────────────────────────────────────────────────
 
 function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDelete: (id: string) => void }) {
+  const navigate = useNavigate()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [showTemplateForm, setShowTemplateForm] = useState(false)
+  const [templateSaved, setTemplateSaved] = useState(false)
   const duration = formatDuration(detail.started_at, detail.completed_at)
+
+  async function handleSaveAsTemplate() {
+    if (!templateName.trim() || detail.exercises.length === 0) return
+    setSavingTemplate(true)
+
+    const { data, error } = await supabase
+      .from('workout_templates')
+      .insert({ name: templateName.trim(), notes: null })
+      .select('id')
+      .single()
+
+    if (error || !data) { setSavingTemplate(false); return }
+
+    const exercises = detail.exercises.map((ex, i) => ({
+      template_id: data.id,
+      exercise_id: ex.exercise_id,
+      sort_order: i,
+      prescribed_sets: ex.sets.length || null,
+      prescribed_reps: ex.sets[0]?.reps ?? null,
+    }))
+
+    await supabase.from('workout_template_exercises').insert(exercises)
+    setSavingTemplate(false)
+    setShowTemplateForm(false)
+    setTemplateName('')
+    setTemplateSaved(true)
+    setTimeout(() => setTemplateSaved(false), 3000)
+  }
 
   return (
     <div className="max-w-2xl">
@@ -133,8 +177,56 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
           </p>
         )}
 
-        {/* Delete button */}
-        <div className="mt-4">
+        {/* Action buttons */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* Save as Template */}
+          {detail.exercises.length > 0 && detail.workout_type !== 'stretch' && !templateSaved && (
+            !showTemplateForm ? (
+              <button
+                onClick={() => setShowTemplateForm(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:border-[#00E5FF] hover:text-[#00E5FF] transition-all duration-150"
+              >
+                <LayoutTemplate size={12} />
+                Save as Template
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveAsTemplate()}
+                  placeholder="Template name"
+                  autoFocus
+                  className="w-40 bg-[#1A1028] border border-[#3D2E5C] rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-[#3D2E5C] focus:outline-none focus:border-[#00E5FF]"
+                />
+                <button
+                  onClick={handleSaveAsTemplate}
+                  disabled={!templateName.trim() || savingTemplate}
+                  className="px-3 py-1.5 rounded-lg bg-[#00E5FF] text-[#0F0A1A] text-xs font-bold disabled:opacity-40 hover:bg-[#00C8E0] transition-colors"
+                >
+                  {savingTemplate ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setShowTemplateForm(false); setTemplateName('') }}
+                  className="p-1.5 text-[#5E5278] hover:text-foreground"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )
+          )}
+          {templateSaved && (
+            <button
+              onClick={() => navigate('/templates')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#7DFFC4]/30 bg-[#7DFFC4]/10 text-xs font-bold text-[#7DFFC4]"
+            >
+              <LayoutTemplate size={12} />
+              Template saved — view →
+            </button>
+          )}
+
+          {/* Delete */}
           {!confirmingDelete ? (
             <button
               onClick={() => setConfirmingDelete(true)}
@@ -212,6 +304,21 @@ export default function History() {
   const { workouts, loading, selectedId, setSelectedId, detail, detailLoading, deleteWorkout } = useWorkoutHistory()
   const isMobile = useIsMobile()
   const [showDetail, setShowDetail] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
+
+  // Filter workouts
+  const filtered = workouts.filter((w) => {
+    if (typeFilter !== 'all' && w.workout_type !== typeFilter) return false
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      const matchType = formatWorkoutType(w.workout_type).toLowerCase().includes(q)
+      const matchDate = formatDate(w.started_at).toLowerCase().includes(q)
+      const matchNotes = w.notes?.toLowerCase().includes(q)
+      if (!matchType && !matchDate && !matchNotes) return false
+    }
+    return true
+  })
 
   return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
@@ -225,6 +332,36 @@ export default function History() {
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             History
           </span>
+
+          {/* Search */}
+          <div className="relative mt-3">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5E5278]" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-8 pl-8 pr-3 rounded-lg bg-[#241838] border border-[#2A2040] text-xs text-foreground placeholder:text-[#5E5278] focus:outline-none focus:border-[#E91E8C]"
+            />
+          </div>
+
+          {/* Type filter chips */}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {WORKOUT_TYPES.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setTypeFilter(t.value)}
+                className={cn(
+                  'px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all',
+                  typeFilter === t.value
+                    ? 'bg-[#E91E8C] text-white'
+                    : 'text-[#5E5278] hover:bg-[#241838] hover:text-[#9B8FB0]',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-2">
@@ -241,7 +378,13 @@ export default function History() {
             </div>
           )}
 
-          {!loading && workouts.map((w) => (
+          {!loading && workouts.length > 0 && filtered.length === 0 && (
+            <div className="py-16 text-center">
+              <p className="text-sm text-[#5E5278]">No matching workouts.</p>
+            </div>
+          )}
+
+          {!loading && filtered.map((w) => (
             <WorkoutCard
               key={w.id}
               workout={w}
