@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useSettings, type ProgramSettings } from '@/hooks/useSettings'
 import { useEquipment, EQUIPMENT_TYPES } from '@/hooks/useEquipment'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import MobileBackButton from '@/components/layout/MobileBackButton'
 import { Timer, TrendingUp, Dumbbell, Key, Download, Loader2, Package, X, Check } from 'lucide-react'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -361,7 +363,9 @@ function EquipmentSection() {
 
 export default function Settings() {
   const { settings, workingWeights, loading, saveSetting, saveWorkingWeight, exportCsv } = useSettings()
+  const isMobile = useIsMobile()
   const [activeSection, setActiveSection] = useState<Section>('equipment')
+  const [showDetail, setShowDetail] = useState(false)
 
   if (loading) {
     return (
@@ -383,9 +387,12 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex flex-col md:flex-row h-full overflow-hidden">
       {/* ── Left nav ── */}
-      <div className="w-64 shrink-0 flex flex-col border-r border-border h-full">
+      <div className={cn(
+        'w-full md:w-64 md:shrink-0 flex flex-col border-r border-border h-full',
+        isMobile && showDetail && 'hidden'
+      )}>
         <div className="px-4 pt-5 pb-4 shrink-0">
           <h1
             className="text-xl font-black tracking-tight"
@@ -398,7 +405,7 @@ export default function Settings() {
           {NAV.map(({ id, label, Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveSection(id)}
+              onClick={() => { setActiveSection(id); setShowDetail(true) }}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 text-left transition-all duration-150 border-l-2',
                 activeSection === id
@@ -415,7 +422,13 @@ export default function Settings() {
       </div>
 
       {/* ── Right content ── */}
-      <div className="flex-1 overflow-y-auto p-6 max-w-xl">
+      <div className={cn(
+        'flex-1 overflow-y-auto p-4 md:p-6 max-w-xl',
+        isMobile && !showDetail && 'hidden'
+      )}>
+        {isMobile && showDetail && (
+          <MobileBackButton onBack={() => setShowDetail(false)} />
+        )}
         {renderSection()}
       </div>
     </div>

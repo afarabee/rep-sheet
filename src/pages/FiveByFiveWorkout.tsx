@@ -4,6 +4,7 @@ import { Settings, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { use5x5Workout } from '@/hooks/use5x5Workout'
 import { useAbCircuit } from '@/hooks/useAbCircuit'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { supabase } from '@/lib/supabase'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 
@@ -114,7 +115,9 @@ export default function FiveByFiveWorkout() {
   const [abRounds, setAbRounds] = useState(0)
   const [abChecked, setAbChecked] = useState<Set<string>>(new Set())
 
+  const isMobile = useIsMobile()
   const [showPicker, setShowPicker] = useState(false)
+  const [showExerciseList, setShowExerciseList] = useState(false)
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set())
   const [weightInput, setWeightInput] = useState('')
@@ -199,10 +202,13 @@ export default function FiveByFiveWorkout() {
   )
 
   return (
-    <div className="h-full flex flex-row overflow-hidden">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
       {/* ── Left Pane ── */}
-      <div className="w-80 shrink-0 border-r border-border bg-card flex flex-col">
+      <div className={cn(
+        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        isMobile && !showExerciseList && 'hidden'
+      )}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -237,7 +243,7 @@ export default function FiveByFiveWorkout() {
             return (
               <div
                 key={ex.workoutExerciseId}
-                onClick={() => { setActiveExerciseIndex(i); setShowPicker(false) }}
+                onClick={() => { setActiveExerciseIndex(i); setShowPicker(false); setShowExerciseList(false) }}
                 className={cn(
                   'p-4 rounded-xl mb-1.5 cursor-pointer transition-all duration-150 border-l-2',
                   isActive
@@ -351,7 +357,7 @@ export default function FiveByFiveWorkout() {
 
       {/* ── Right Pane ── */}
       {showPicker ? (
-        <div className="flex-1 overflow-hidden">
+        <div className={cn('flex-1 overflow-hidden', isMobile && showExerciseList && 'hidden')}>
           <ExercisePicker
             onAdd={(exerciseId, name, equipmentType) => addExercise(exerciseId, name, equipmentType)}
             onClose={() => setShowPicker(false)}
@@ -359,7 +365,20 @@ export default function FiveByFiveWorkout() {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-radial-purple">
+        <div className={cn(
+          'flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-radial-purple',
+          isMobile && showExerciseList && 'hidden'
+        )}>
+
+          {/* Mobile: switch exercise button */}
+          {isMobile && status === 'active' && activeExercise && (
+            <button
+              onClick={() => setShowExerciseList(true)}
+              className="md:hidden mb-3 text-xs font-semibold text-[#9B8FB0] hover:text-foreground transition-colors"
+            >
+              ← Exercises
+            </button>
+          )}
 
           {/* Planning state — exercise preview */}
           {status === 'planning' && (

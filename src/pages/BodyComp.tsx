@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useBodyComp, type BodyCompEntry } from '@/hooks/useBodyComp'
 import { useBodyMeasurements, type MeasurementSession } from '@/hooks/useBodyMeasurements'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import MobileBackButton from '@/components/layout/MobileBackButton'
 import { Trash2, Loader2, Key, Camera, ScanLine, Activity, PenLine, Ruler } from 'lucide-react'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -329,6 +331,7 @@ export default function BodyComp() {
   const { entries, loading, apiKey, saveEntry, deleteEntry, saveApiKey } = useBodyComp()
   const { sessions, loading: measurementsLoading, saveSession, deleteSession } = useBodyMeasurements()
 
+  const isMobile = useIsMobile()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedSessionDate, setSelectedSessionDate] = useState<string | null>(null)
   const [rightPane, setRightPane] = useState<RightPane>('idle')
@@ -619,7 +622,7 @@ export default function BodyComp() {
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex flex-col md:flex-row h-full overflow-hidden">
       <input
         ref={fileInputRef}
         type="file"
@@ -629,7 +632,10 @@ export default function BodyComp() {
       />
 
       {/* ── Left pane ── */}
-      <div className="w-80 shrink-0 flex flex-col border-r border-border h-full overflow-hidden">
+      <div className={cn(
+        'w-full md:w-80 md:shrink-0 flex flex-col border-r border-border h-full overflow-hidden',
+        isMobile && rightPane !== 'idle' && 'hidden'
+      )}>
 
         {/* Body Comp section */}
         <div className="px-4 pt-5 pb-3 flex items-center justify-between shrink-0">
@@ -705,7 +711,13 @@ export default function BodyComp() {
       </div>
 
       {/* ── Right pane ── */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className={cn(
+        'flex-1 overflow-y-auto p-4 md:p-6',
+        isMobile && rightPane === 'idle' && 'hidden'
+      )}>
+        {isMobile && rightPane !== 'idle' && (
+          <MobileBackButton onBack={() => setRightPane('idle')} />
+        )}
         {renderRight()}
       </div>
     </div>
