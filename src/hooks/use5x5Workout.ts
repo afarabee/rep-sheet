@@ -242,6 +242,16 @@ export function use5x5Workout(label: 'A' | 'B') {
 
     if (error) { setError(error.message); return }
 
+    // Auto-save working weight for this exercise
+    if (weightLbs != null) {
+      await supabase
+        .from('working_weights')
+        .upsert(
+          { exercise_id: exercise.exerciseId, weight_lbs: weightLbs, updated_at: new Date().toISOString() },
+          { onConflict: 'exercise_id' }
+        )
+    }
+
     const newSet: FiveByFiveSet = {
       id: data.id,
       set_number: data.set_number,
