@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTemplates } from '@/hooks/useTemplates'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import ExercisePicker from '@/components/workout/ExercisePicker'
+import MobileBackButton from '@/components/layout/MobileBackButton'
 
 interface DraftExercise {
   key: number           // local-only identity for list operations
@@ -55,7 +57,9 @@ function TemplateCard({
 
 export default function Templates() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [showPicker, setShowPicker] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
 
   // Draft state — local only, nothing touches DB until Save
   const [draftName, setDraftName] = useState('')
@@ -86,6 +90,7 @@ export default function Templates() {
     setDraftName('')
     setDraftExercises([])
     setShowPicker(false)
+    setShowDetail(true)
   }
 
   function handleCancelCreate() {
@@ -139,10 +144,13 @@ export default function Templates() {
     : detail?.exercises.map((e) => e.exercise_id) ?? []
 
   return (
-    <div className="h-full flex flex-row overflow-hidden">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
       {/* ── Left Pane ── */}
-      <div className="w-80 shrink-0 border-r border-border bg-card flex flex-col">
+      <div className={cn(
+        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        isMobile && (showDetail || creating) && 'hidden'
+      )}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             Templates
@@ -182,7 +190,7 @@ export default function Templates() {
               name={t.name}
               exerciseCount={t.exercise_count}
               isSelected={t.id === selectedId}
-              onClick={() => { setSelectedId(t.id); setCreating(false); setShowPicker(false) }}
+              onClick={() => { setSelectedId(t.id); setCreating(false); setShowPicker(false); setShowDetail(true) }}
               onDelete={() => deleteTemplate(t.id)}
             />
           ))}
@@ -190,10 +198,18 @@ export default function Templates() {
       </div>
 
       {/* ── Right Pane ── */}
-      <div className="flex-1 overflow-hidden flex">
+      <div className={cn(
+        'flex-1 overflow-hidden flex',
+        isMobile && !showDetail && !creating && 'hidden'
+      )}>
 
         {/* Detail / create area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-radial-purple">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-radial-purple">
+
+          {/* Mobile back button */}
+          {isMobile && (showDetail || creating) && (
+            <MobileBackButton onBack={() => { setShowDetail(false); setCreating(false); setShowPicker(false) }} />
+          )}
 
           {/* Empty state */}
           {!selectedId && !creating && (
@@ -447,7 +463,7 @@ export default function Templates() {
 
         {/* Exercise picker panel */}
         {showPicker && (creating || detail) && (
-          <div className="w-96 shrink-0 border-l border-border overflow-hidden">
+          <div className="w-full md:w-96 md:shrink-0 border-l border-border overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name) => {
                 if (creating) {

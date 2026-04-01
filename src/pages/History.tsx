@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import MobileBackButton from '@/components/layout/MobileBackButton'
 import type { WorkoutSummary, WorkoutDetail } from '@/hooks/useWorkoutHistory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -12,6 +14,7 @@ function formatWorkoutType(type: string): string {
     case 'five_by_five_a': return '5×5 A'
     case 'five_by_five_b': return '5×5 B'
     case 'template': return 'Template'
+    case 'stretch': return 'Stretch'
     default: return type
   }
 }
@@ -207,12 +210,17 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
 
 export default function History() {
   const { workouts, loading, selectedId, setSelectedId, detail, detailLoading, deleteWorkout } = useWorkoutHistory()
+  const isMobile = useIsMobile()
+  const [showDetail, setShowDetail] = useState(false)
 
   return (
-    <div className="h-full flex flex-row overflow-hidden">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
       {/* ── Left Pane: Workout List ── */}
-      <div className="w-80 shrink-0 border-r border-border bg-card flex flex-col">
+      <div className={cn(
+        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        isMobile && showDetail && 'hidden'
+      )}>
         <div className="px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             History
@@ -238,14 +246,20 @@ export default function History() {
               key={w.id}
               workout={w}
               isSelected={w.id === selectedId}
-              onClick={() => setSelectedId(w.id)}
+              onClick={() => { setSelectedId(w.id); setShowDetail(true) }}
             />
           ))}
         </div>
       </div>
 
       {/* ── Right Pane: Detail ── */}
-      <div className="flex-1 overflow-y-auto p-6 bg-radial-purple">
+      <div className={cn(
+        'flex-1 overflow-y-auto p-4 md:p-6 bg-radial-purple',
+        isMobile && !showDetail && 'hidden'
+      )}>
+        {isMobile && showDetail && (
+          <MobileBackButton onBack={() => setShowDetail(false)} />
+        )}
         {!selectedId && (
           <div className="h-full flex items-center justify-center">
             <p className="text-sm text-[#5E5278]">Select a workout to view details.</p>
