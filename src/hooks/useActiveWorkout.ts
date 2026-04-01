@@ -15,6 +15,7 @@ export interface WorkoutExercise {
   sort_order: number
   name: string       // denormalized from exercises
   equipment_type: string | null
+  is_timed: boolean
   sets: WorkoutSet[]
 }
 
@@ -71,7 +72,7 @@ export function useActiveWorkout(templateId?: string) {
 
         const { data: weData } = await supabase
           .from('workout_exercises')
-          .select('id, exercise_id, sort_order, exercises(name, equipment_type)')
+          .select('id, exercise_id, sort_order, exercises(name, equipment_type, is_timed)')
           .eq('workout_id', wid)
           .order('sort_order', { ascending: true })
 
@@ -96,13 +97,14 @@ export function useActiveWorkout(templateId?: string) {
           }
 
           const exs: WorkoutExercise[] = weData.map((we) => {
-            const ex = we.exercises as unknown as { name: string; equipment_type: string | null } | null
+            const ex = we.exercises as unknown as { name: string; equipment_type: string | null; is_timed: boolean } | null
             return {
               id: we.id,
               exercise_id: we.exercise_id,
               sort_order: we.sort_order,
               name: ex?.name ?? 'Unknown',
               equipment_type: ex?.equipment_type ?? null,
+              is_timed: ex?.is_timed ?? false,
               sets: setsByWe.get(we.id) ?? [],
             }
           })
@@ -131,7 +133,7 @@ export function useActiveWorkout(templateId?: string) {
       if (templateId) {
         const { data: teData } = await supabase
           .from('workout_template_exercises')
-          .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type)')
+          .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type, is_timed)')
           .eq('template_id', templateId)
           .order('sort_order', { ascending: true })
 
@@ -152,13 +154,14 @@ export function useActiveWorkout(templateId?: string) {
           const exs: WorkoutExercise[] = (weData ?? [])
             .map((we) => {
               const te = teData.find((t) => t.exercise_id === we.exercise_id)
-              const ex = te?.exercises as unknown as { name: string; equipment_type: string | null } | null
+              const ex = te?.exercises as unknown as { name: string; equipment_type: string | null; is_timed: boolean } | null
               return {
                 id: we.id,
                 exercise_id: we.exercise_id,
                 sort_order: we.sort_order,
                 name: ex?.name ?? 'Unknown',
                 equipment_type: ex?.equipment_type ?? null,
+              is_timed: ex?.is_timed ?? false,
                 sets: [],
               }
             })
@@ -191,7 +194,7 @@ export function useActiveWorkout(templateId?: string) {
     return () => clearTimeout(t)
   }, [restSecondsLeft])
 
-  async function addExercise(exerciseId: string, name: string, equipmentType?: string | null) {
+  async function addExercise(exerciseId: string, name: string, equipmentType?: string | null, isTimed?: boolean) {
     if (!workoutId) return
     const sortOrder = workoutExercises.length
     const { data, error } = await supabase
@@ -206,6 +209,7 @@ export function useActiveWorkout(templateId?: string) {
       sort_order: sortOrder,
       name,
       equipment_type: equipmentType ?? null,
+      is_timed: isTimed ?? false,
       sets: [],
     }
     setWorkoutExercises((prev) => {

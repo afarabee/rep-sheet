@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { useExercises } from '@/hooks/useExercises'
 
 interface ExercisePickerProps {
-  onAdd: (exerciseId: string, name: string, equipmentType: string | null) => void
+  onAdd: (exerciseId: string, name: string, equipmentType: string | null, isTimed: boolean) => void
   onClose: () => void
   alreadyAddedIds: string[]
 }
@@ -158,7 +158,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
           return (
             <div
               key={ex.id}
-              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type) }}
+              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type, ex.is_timed) }}
               className={cn(
                 'flex items-center gap-3 px-6 py-3 border-b border-border min-h-[52px] transition-colors',
                 alreadyAdded
