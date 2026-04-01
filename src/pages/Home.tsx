@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { useGoals } from '@/hooks/useGoals'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ function StatCard({ label, value, unit, colorClass, glow }: {
 
 export default function Home() {
   const navigate = useNavigate()
+  const { activeGoals } = useGoals()
   const [nextLabel, setNextLabel] = useState<'A' | 'B'>('A')
   const [hasConfig, setHasConfig] = useState(false)
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([])
@@ -374,6 +376,58 @@ export default function Home() {
           >
             Resume →
           </button>
+        </div>
+      )}
+
+      {/* Active Goals */}
+      {activeGoals.length > 0 && (
+        <div className="px-10 pb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[11px] font-black text-[#5E5278] uppercase tracking-[0.25em]">
+              Active Goals
+            </div>
+            <Link to="/goals" className="text-[10px] font-black uppercase tracking-wider text-[#E91E8C] hover:text-[#FF6EC7] transition-colors">
+              View all →
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {activeGoals.slice(0, 3).map((goal) => {
+              const typeColor = goal.goal_type === 'strength' ? '#E91E8C' : goal.goal_type === 'body' ? '#00E5FF' : '#9B8FB0'
+              const typeBg = goal.goal_type === 'strength' ? 'rgba(233,30,140,0.12)' : goal.goal_type === 'body' ? 'rgba(0,229,255,0.12)' : 'rgba(155,143,176,0.12)'
+              const pct = goal.target_value ? Math.min(100, Math.round(((goal.current_value ?? 0) / goal.target_value) * 100)) : null
+              return (
+                <Link
+                  key={goal.id}
+                  to="/goals"
+                  className="p-4 rounded-2xl bg-card border border-border hover:border-[#3D2E5C] transition-colors block"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded shrink-0"
+                      style={{ backgroundColor: typeBg, color: typeColor, border: `1px solid ${typeColor}40` }}
+                    >
+                      {goal.goal_type}
+                    </span>
+                    <span className="text-sm font-semibold text-foreground truncate">{goal.description}</span>
+                  </div>
+                  {pct !== null && (
+                    <div className="mt-2">
+                      <div className="h-1.5 rounded-full bg-[#241838] overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${pct}%`, backgroundColor: typeColor }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[10px] text-[#5E5278] mt-1">
+                        <span>{goal.current_value ?? 0} / {goal.target_value}</span>
+                        <span>{pct}%</span>
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
 

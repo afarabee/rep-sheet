@@ -1,18 +1,9 @@
 import { useState, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Home, ScrollText, Calendar, Activity, BookOpen, LayoutTemplate, Settings, Dumbbell } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-
-const navItems = [
-  { to: '/', label: 'Home', Icon: Home, end: true },
-  { to: '/history', label: 'History', Icon: ScrollText, end: false },
-  { to: '/calendar', label: 'Calendar', Icon: Calendar, end: false },
-  { to: '/body-comp', label: 'Body', Icon: Activity, end: false },
-  { to: '/library', label: 'Library', Icon: BookOpen, end: false },
-  { to: '/templates', label: 'Templates', Icon: LayoutTemplate, end: false },
-  { to: '/settings', label: 'Settings', Icon: Settings, end: false },
-]
+import { loadNavOrder } from '@/lib/navOrder'
 
 function getWorkoutRoute(type: string | null): string {
   if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
@@ -21,8 +12,10 @@ function getWorkoutRoute(type: string | null): string {
 }
 
 export default function SidebarNav() {
+  const location = useLocation()
   const [hasActiveWorkout, setHasActiveWorkout] = useState(false)
   const [activeWorkoutType, setActiveWorkoutType] = useState<string | null>(null)
+  const [navItems, setNavItems] = useState(loadNavOrder)
 
   useEffect(() => {
     async function check() {
@@ -37,7 +30,9 @@ export default function SidebarNav() {
       setActiveWorkoutType(found ? (data![0].workout_type ?? null) : null)
     }
     check()
-  }, [])
+    // Re-read nav order from localStorage (e.g. after changing order in Settings)
+    setNavItems(loadNavOrder())
+  }, [location.pathname])
 
   return (
     <nav className="flex flex-col items-center w-16 landscape:w-[76px] bg-card border-r border-border h-full pt-4 pb-6 gap-1 shrink-0">
@@ -84,7 +79,7 @@ export default function SidebarNav() {
                 'w-full rounded-xl flex flex-col items-center justify-center gap-0.5 py-2.5 transition-all duration-150 cursor-pointer',
                 isActive
                   ? 'bg-[#E91E8C] text-white neon-glow'
-                  : 'bg-transparent text-[#5E5278] hover:bg-[#241838] hover:text-[#F0EAF4]'
+                  : 'bg-transparent text-[#5E5278] hover:bg-[#241838] hover:text-[#F0EAF4]',
               )
             }
           >
