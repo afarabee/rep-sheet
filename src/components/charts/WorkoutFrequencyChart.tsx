@@ -21,7 +21,7 @@ export default function WorkoutFrequencyChart({ data }: Props) {
           type="number"
           scale="time"
           domain={['dataMin', 'dataMax']}
-          tickFormatter={(v: number) => formatDate(v)}
+          tickFormatter={(v: any) => formatDate(v)}
           {...AXIS_STYLE}
         />
         <YAxis
@@ -31,8 +31,8 @@ export default function WorkoutFrequencyChart({ data }: Props) {
         />
         <Tooltip
           {...TOOLTIP_STYLE}
-          labelFormatter={(v: number) => `Week of ${formatDate(v)}`}
-          formatter={(v: number) => [`${v}`, 'Workouts']}
+          labelFormatter={(v: any) => `Week of ${formatDate(v)}`}
+          formatter={(v: any) => [`${v}`, 'Workouts']}
         />
         <Bar
           dataKey="count"

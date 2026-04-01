@@ -31,14 +31,14 @@ export default function ExerciseVolumeChart({ data }: Props) {
           {...AXIS_STYLE}
         />
         <YAxis
-          tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`}
+          tickFormatter={(v: any) => v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`}
           width={45}
           {...AXIS_STYLE}
         />
         <Tooltip
           {...TOOLTIP_STYLE}
-          labelFormatter={(v: number) => formatDate(v)}
-          formatter={(v: number) => [`${v.toLocaleString()} lbs`, 'Volume']}
+          labelFormatter={(v: any) => formatDate(v)}
+          formatter={(v: any) => [`${v.toLocaleString()} lbs`, 'Volume']}
         />
         <Area
           type="monotone"

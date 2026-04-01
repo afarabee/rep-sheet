@@ -4,7 +4,6 @@ import { X, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActiveWorkout } from '@/hooks/useActiveWorkout'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import MobileBackButton from '@/components/layout/MobileBackButton'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
