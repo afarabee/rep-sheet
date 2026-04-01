@@ -127,6 +127,7 @@ export default function FiveByFiveWorkout() {
   const isCurrentComplete = activeExercise ? activeExercise.sets.length >= 5 : false
   const nextSetNumber = Math.min((activeExercise?.sets.length ?? 0) + 1, 5)
   const isBodyweight = activeExercise?.equipment_type === 'bodyweight'
+  const isTimed = activeExercise?.is_timed ?? false
 
   // Progressive overload suggestion — show when all 5 sets had reps >= 5
   const allSetsSuccessful = isCurrentComplete &&
@@ -359,7 +360,7 @@ export default function FiveByFiveWorkout() {
       {showPicker ? (
         <div className={cn('flex-1 overflow-hidden', isMobile && showExerciseList && 'hidden')}>
           <ExercisePicker
-            onAdd={(exerciseId, name, equipmentType) => addExercise(exerciseId, name, equipmentType)}
+            onAdd={(exerciseId, name, equipmentType, isTimed) => addExercise(exerciseId, name, equipmentType, isTimed)}
             onClose={() => setShowPicker(false)}
             alreadyAddedIds={alreadyAddedIds}
           />
@@ -691,7 +692,7 @@ export default function FiveByFiveWorkout() {
                     {!isBodyweight && (
                       <NumericInput label="Weight (lbs)" value={weightInput} onChange={setWeightInput} step={5} placeholder="—" />
                     )}
-                    <NumericInput label="Reps" value={repsInput} onChange={setRepsInput} step={1} placeholder="5" />
+                    <NumericInput label={isTimed ? 'Time (sec)' : 'Reps'} value={repsInput} onChange={setRepsInput} step={isTimed ? 5 : 1} placeholder={isTimed ? '30' : '5'} />
                     <button
                       onClick={handleLogSet}
                       className="h-16 px-8 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
@@ -723,7 +724,7 @@ export default function FiveByFiveWorkout() {
                         <div className="flex-1">
                           <span className="text-base font-bold weight-number text-foreground">
                             {set.weight_lbs != null ? `${set.weight_lbs} lbs` : 'Bodyweight'}
-                            {set.reps != null && <span className="text-[#9B8FB0]"> × {set.reps} reps</span>}
+                            {set.reps != null && <span className="text-[#9B8FB0]"> × {isTimed ? `${set.reps}s` : `${set.reps} reps`}</span>}
                           </span>
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-wider text-[#7DFFC4]">Complete</span>

@@ -194,6 +194,7 @@ export default function Library() {
   const [formMuscleGroup, setFormMuscleGroup] = useState('')
   const [formEquipmentType, setFormEquipmentType] = useState('')
   const [formDescription, setFormDescription] = useState('')
+  const [formIsTimed, setFormIsTimed] = useState(false)
   const [formSaving, setFormSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -204,6 +205,7 @@ export default function Library() {
     setFormMuscleGroup('')
     setFormEquipmentType('')
     setFormDescription('')
+    setFormIsTimed(false)
     setFormError(null)
     setFormSaving(false)
   }
@@ -215,6 +217,7 @@ export default function Library() {
     setFormMuscleGroup(exercise.muscle_group ?? '')
     setFormEquipmentType(exercise.equipment_type ?? '')
     setFormDescription(exercise.description ?? '')
+    setFormIsTimed(exercise.is_timed ?? false)
     setFormError(null)
   }
 
@@ -229,6 +232,7 @@ export default function Library() {
           muscle_group: formMuscleGroup,
           equipment_type: formEquipmentType || 'other',
           description: formDescription.trim() || null,
+          is_timed: formIsTimed,
         })
       } else {
         const data: NewExercise = {
@@ -236,6 +240,7 @@ export default function Library() {
           muscle_group: formMuscleGroup,
           equipment_type: formEquipmentType || 'other',
           description: formDescription.trim() || undefined,
+          is_timed: formIsTimed,
         }
         await addCustomExercise(data)
       }
@@ -357,6 +362,20 @@ export default function Library() {
               className="bg-background"
             />
           </div>
+          <label className="flex items-center gap-2 mb-4 cursor-pointer">
+            <span
+              onClick={() => setFormIsTimed((v) => !v)}
+              className={cn(
+                'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
+                formIsTimed ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
+              )}
+            >
+              {formIsTimed && <Check size={10} className="text-[#0F0A1A]" />}
+            </span>
+            <span className="text-xs text-muted-foreground" onClick={() => setFormIsTimed((v) => !v)}>
+              Timed exercise (log seconds instead of reps)
+            </span>
+          </label>
           {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={handleCancelForm}>

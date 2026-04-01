@@ -11,6 +11,7 @@ export interface Exercise {
   is_active: boolean
   is_custom: boolean
   is_favorite: boolean
+  is_timed: boolean
   source: string | null
   created_at: string
 }
@@ -20,6 +21,7 @@ export interface NewExercise {
   muscle_group: string
   equipment_type: string
   description?: string
+  is_timed?: boolean
 }
 
 export function useExercises() {
@@ -116,6 +118,7 @@ export function useExercises() {
       is_active: true,
       is_custom: true,
       is_favorite: false,
+      is_timed: data.is_timed ?? false,
       source: 'custom',
     }
     const { data: newRow, error } = await supabase
@@ -127,7 +130,7 @@ export function useExercises() {
     setExercises((prev) => [newRow as Exercise, ...prev])
   }
 
-  async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description'>>) {
+  async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description' | 'is_timed'>>) {
     const prev = exercises.find((ex) => ex.id === id)
     if (!prev) return
     // Optimistic update

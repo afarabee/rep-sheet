@@ -15,6 +15,7 @@ export interface FiveByFiveExercise {
   sort_order: number
   name: string
   equipment_type: string | null
+  is_timed: boolean
   workingWeight: number | null
   sets: FiveByFiveSet[]
 }
@@ -71,7 +72,7 @@ export function use5x5Workout(label: 'A' | 'B') {
         const [weResult, weightsResult] = await Promise.all([
           supabase
             .from('workout_exercises')
-            .select('id, exercise_id, sort_order, exercises(name, equipment_type)')
+            .select('id, exercise_id, sort_order, exercises(name, equipment_type, is_timed)')
             .eq('workout_id', wid)
             .order('sort_order', { ascending: true }),
           supabase.from('working_weights').select('exercise_id, weight_lbs'),
@@ -104,13 +105,14 @@ export function use5x5Workout(label: 'A' | 'B') {
 
           const exs: FiveByFiveExercise[] = weData
             .map((we) => {
-              const ex = we.exercises as unknown as { name: string; equipment_type: string | null } | null
+              const ex = we.exercises as unknown as { name: string; equipment_type: string | null; is_timed: boolean } | null
               return {
                 workoutExerciseId: we.id,
                 exerciseId: we.exercise_id,
                 sort_order: we.sort_order,
                 name: ex?.name ?? 'Unknown',
                 equipment_type: ex?.equipment_type ?? null,
+              is_timed: ex?.is_timed ?? false,
                 workingWeight: weightsMap.get(we.exercise_id) ?? null,
                 sets: setsByWe.get(we.id) ?? [],
               }
@@ -128,7 +130,7 @@ export function use5x5Workout(label: 'A' | 'B') {
       const [configResult, weightsResult] = await Promise.all([
         supabase
           .from('five_by_five_config')
-          .select('id, exercise_id, sort_order, exercises(name, equipment_type)')
+          .select('id, exercise_id, sort_order, exercises(name, equipment_type, is_timed)')
           .eq('workout_label', label)
           .order('sort_order', { ascending: true }),
         supabase.from('working_weights').select('exercise_id, weight_lbs'),
@@ -171,13 +173,14 @@ export function use5x5Workout(label: 'A' | 'B') {
         const exs: FiveByFiveExercise[] = (weData ?? [])
           .map((we) => {
             const cfg = config.find((c) => c.exercise_id === we.exercise_id)
-            const ex = cfg?.exercises as unknown as { name: string; equipment_type: string | null } | null
+            const ex = cfg?.exercises as unknown as { name: string; equipment_type: string | null; is_timed: boolean } | null
             return {
               workoutExerciseId: we.id,
               exerciseId: we.exercise_id,
               sort_order: we.sort_order,
               name: ex?.name ?? 'Unknown',
               equipment_type: ex?.equipment_type ?? null,
+              is_timed: ex?.is_timed ?? false,
               workingWeight: weightsMap.get(we.exercise_id) ?? null,
               sets: [],
             }
@@ -266,7 +269,7 @@ export function use5x5Workout(label: 'A' | 'B') {
     }
   }
 
-  async function addExercise(exerciseId: string, name: string, equipmentType?: string | null) {
+  async function addExercise(exerciseId: string, name: string, equipmentType?: string | null, isTimed?: boolean) {
     if (!workoutId) return
     const sortOrder = exercises.length
     const { data, error } = await supabase
@@ -282,6 +285,7 @@ export function use5x5Workout(label: 'A' | 'B') {
       sort_order: sortOrder,
       name,
       equipment_type: equipmentType ?? null,
+      is_timed: isTimed ?? false,
       workingWeight: null,
       sets: [],
     }

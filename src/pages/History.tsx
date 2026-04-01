@@ -190,7 +190,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
                   <span className="flex-1 text-sm font-bold weight-number text-foreground">
                     {set.weight_lbs != null ? `${set.weight_lbs} lbs` : 'Bodyweight'}
                     {set.reps != null && (
-                      <span className="text-[#9B8FB0] font-normal"> × {set.reps} reps</span>
+                      <span className="text-[#9B8FB0] font-normal"> × {ex.is_timed ? `${set.reps}s` : `${set.reps} reps`}</span>
                     )}
                   </span>
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#7DFFC4]">
