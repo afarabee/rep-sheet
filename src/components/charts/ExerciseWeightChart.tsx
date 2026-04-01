@@ -26,14 +26,14 @@ export default function ExerciseWeightChart({ data }: Props) {
         />
         <YAxis
           domain={['auto', 'auto']}
-          tickFormatter={(v: number) => `${v}`}
+          tickFormatter={(v: any) => `${v}`}
           width={45}
           {...AXIS_STYLE}
         />
         <Tooltip
           {...TOOLTIP_STYLE}
-          labelFormatter={(v: number) => formatDate(v)}
-          formatter={(v: number) => [`${v} lbs`, 'Max Weight']}
+          labelFormatter={(v: any) => formatDate(v)}
+          formatter={(v: any) => [`${v} lbs`, 'Max Weight']}
         />
         <Line
           type="monotone"

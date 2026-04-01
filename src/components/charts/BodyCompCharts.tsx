@@ -34,14 +34,14 @@ export default function BodyCompCharts({ data }: Props) {
           />
           <YAxis
             domain={['auto', 'auto']}
-            tickFormatter={(v: number) => `${v}`}
+            tickFormatter={(v: any) => `${v}`}
             width={45}
             {...AXIS_STYLE}
           />
           <Tooltip
             {...TOOLTIP_STYLE}
-            labelFormatter={(v: number) => formatDate(v)}
-            formatter={(v: number) => [`${v} lbs`, 'Weight']}
+            labelFormatter={(v: any) => formatDate(v)}
+            formatter={(v: any) => [`${v} lbs`, 'Weight']}
           />
           <Area
             type="monotone"
@@ -73,14 +73,14 @@ export default function BodyCompCharts({ data }: Props) {
           />
           <YAxis
             domain={['auto', 'auto']}
-            tickFormatter={(v: number) => `${v}%`}
+            tickFormatter={(v: any) => `${v}%`}
             width={45}
             {...AXIS_STYLE}
           />
           <Tooltip
             {...TOOLTIP_STYLE}
-            labelFormatter={(v: number) => formatDate(v)}
-            formatter={(v: number) => [`${v}%`, 'Body Fat']}
+            labelFormatter={(v: any) => formatDate(v)}
+            formatter={(v: any) => [`${v}%`, 'Body Fat']}
           />
           <Line
             type="monotone"
@@ -111,14 +111,14 @@ export default function BodyCompCharts({ data }: Props) {
           />
           <YAxis
             domain={['auto', 'auto']}
-            tickFormatter={(v: number) => `${v}`}
+            tickFormatter={(v: any) => `${v}`}
             width={45}
             {...AXIS_STYLE}
           />
           <Tooltip
             {...TOOLTIP_STYLE}
-            labelFormatter={(v: number) => formatDate(v)}
-            formatter={(v: number) => [`${v} lbs`, 'Muscle Mass']}
+            labelFormatter={(v: any) => formatDate(v)}
+            formatter={(v: any) => [`${v} lbs`, 'Muscle Mass']}
           />
           <Line
             type="monotone"
