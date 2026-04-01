@@ -266,8 +266,8 @@ export default function FiveByFiveWorkout() {
             )
           })}
 
-          {/* Ad-hoc add (only when active) */}
-          {status === 'active' && (
+          {/* Ad-hoc add */}
+          {(status === 'active' || status === 'complete') && (
             <button
               onClick={() => setShowPicker(true)}
               className="w-full py-3 rounded-xl border border-dashed border-[#3D2E5C] text-[#5E5278] text-sm font-semibold uppercase tracking-wider mt-1 transition-all hover:border-[#E91E8C] hover:text-[#E91E8C] hover:bg-[#E91E8C]/5"
