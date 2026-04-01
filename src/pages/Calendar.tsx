@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Dumbbell, Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Dumbbell, Zap, LayoutTemplate } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCalendarData } from '@/hooks/useCalendarData'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -180,39 +180,33 @@ function DayDetail({
       {/* Start workout actions */}
       {workouts.length === 0 && (
         <div className="mt-2">
-          {isTrainingDay ? (
-            <>
-              <p className="text-sm text-[#5E5278] mb-4">No workout logged. Start one?</p>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => navigate(getWorkoutRoute('five_by_five_a'))}
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#E91E8C] text-white font-bold text-sm hover:bg-[#C4176F] transition-colors"
-                  style={{ boxShadow: '0 0 16px rgba(233,30,140,0.3)' }}
-                >
-                  <Dumbbell size={16} />
-                  Start 5×5 Workout
-                </button>
-                <button
-                  onClick={() => navigate('/workout/active')}
-                  className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2040] text-sm font-semibold text-[#9B8FB0] hover:bg-[#241838] hover:text-foreground transition-colors"
-                >
-                  <Zap size={16} />
-                  Start Freeform
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-[#5E5278] mb-4">Rest day. Take it easy.</p>
+          <p className="text-sm text-[#5E5278] mb-4">No workout logged.</p>
+          <div className="flex flex-col gap-2">
+            {isTrainingDay && (
               <button
-                onClick={() => navigate('/workout/active')}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2040] text-sm font-semibold text-[#5E5278] hover:bg-[#241838] hover:text-[#9B8FB0] transition-colors"
+                onClick={() => navigate(getWorkoutRoute('five_by_five_a'))}
+                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[#E91E8C] text-white font-bold text-sm hover:bg-[#C4176F] transition-colors"
+                style={{ boxShadow: '0 0 16px rgba(233,30,140,0.3)' }}
               >
-                <Zap size={16} />
-                Start Freeform Anyway
+                <Dumbbell size={16} />
+                Start 5×5 Workout
               </button>
-            </>
-          )}
+            )}
+            <button
+              onClick={() => navigate('/workout/active')}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2040] text-sm font-semibold text-[#9B8FB0] hover:bg-[#241838] hover:text-foreground transition-colors"
+            >
+              <Zap size={16} />
+              Start Freeform
+            </button>
+            <button
+              onClick={() => navigate('/templates')}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl border border-[#2A2040] text-sm font-semibold text-[#9B8FB0] hover:bg-[#241838] hover:text-foreground transition-colors"
+            >
+              <LayoutTemplate size={16} />
+              Start from Template
+            </button>
+          </div>
         </div>
       )}
     </div>
