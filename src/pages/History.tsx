@@ -14,6 +14,7 @@ function formatWorkoutType(type: string): string {
     case 'five_by_five_a': return '5×5 A'
     case 'five_by_five_b': return '5×5 B'
     case 'template': return 'Template'
+    case 'stretch': return 'Stretch'
     default: return type
   }
 }

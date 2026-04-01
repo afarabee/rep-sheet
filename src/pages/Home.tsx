@@ -33,6 +33,7 @@ function formatWorkoutType(type: string): string {
     case 'five_by_five_b': return '5×5 Workout B'
     case 'freeform':       return 'Freeform'
     case 'template':       return 'Template'
+    case 'stretch':        return 'Stretch'
     default:               return type
   }
 }
@@ -101,6 +102,10 @@ export default function Home() {
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([])
   const [stats, setStats] = useState<HomeStats>({ totalWorkouts: null, bodyWeight: null, bodyFatPct: null })
   const [activeWorkout, setActiveWorkout] = useState<{ id: string; type: string } | null>(null)
+  const [showStretchForm, setShowStretchForm] = useState(false)
+  const [stretchMinutes, setStretchMinutes] = useState('10')
+  const [stretchNotes, setStretchNotes] = useState('')
+  const [stretchSaving, setStretchSaving] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -199,6 +204,26 @@ export default function Home() {
     else navigate('/workout/5x5/setup')
   }
 
+  async function handleLogStretch() {
+    const mins = parseInt(stretchMinutes)
+    if (!mins || mins <= 0) return
+    setStretchSaving(true)
+    const completedAt = new Date()
+    const startedAt = new Date(completedAt.getTime() - mins * 60000)
+    await supabase.from('workouts').insert({
+      workout_type: 'stretch',
+      started_at: startedAt.toISOString(),
+      completed_at: completedAt.toISOString(),
+      notes: stretchNotes.trim() || null,
+    })
+    setStretchSaving(false)
+    setShowStretchForm(false)
+    setStretchMinutes('10')
+    setStretchNotes('')
+    // Refresh recent workouts
+    window.location.reload()
+  }
+
   const statCards = [
     {
       label: 'Total Workouts',
@@ -263,6 +288,61 @@ export default function Home() {
             <span>Start from Template</span>
             <span className="text-[#5E5278] text-xs">View all →</span>
           </button>
+
+          {/* Log Stretch */}
+          <button
+            onClick={() => setShowStretchForm((v) => !v)}
+            className="w-full mt-2 py-3 px-6 rounded-xl bg-card border border-border text-[#9B8FB0] text-xs font-bold uppercase tracking-[0.12em] flex items-center justify-between transition-all duration-150 hover:border-[#7DFFC4]/50 hover:text-[#7DFFC4]"
+          >
+            <span>Log Stretch Session</span>
+            <span className="text-[#5E5278] text-xs">Quick log →</span>
+          </button>
+
+          {showStretchForm && (
+            <div className="mt-3 p-4 rounded-xl bg-card border border-border">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7DFFC4] mb-3">
+                Stretch Session
+              </div>
+              <div className="flex gap-3 mb-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-[#5E5278] uppercase tracking-wider">Duration (min)</label>
+                  <input
+                    type="number"
+                    value={stretchMinutes}
+                    onChange={(e) => setStretchMinutes(e.target.value)}
+                    className="w-20 h-9 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#7DFFC4] transition-colors"
+                    inputMode="numeric"
+                    min="1"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-1">
+                  <label className="text-[10px] text-[#5E5278] uppercase tracking-wider">Video / Notes (optional)</label>
+                  <input
+                    type="text"
+                    value={stretchNotes}
+                    onChange={(e) => setStretchNotes(e.target.value)}
+                    placeholder="e.g. Tom Merrick 15min mobility"
+                    className="h-9 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm px-3 outline-none focus:border-[#7DFFC4] transition-colors placeholder:text-[#3D2E5C]"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleLogStretch}
+                  disabled={stretchSaving || !stretchMinutes || parseInt(stretchMinutes) <= 0}
+                  className="px-5 py-2 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40"
+                >
+                  {stretchSaving ? 'Saving…' : 'Log Stretch'}
+                </button>
+                <button
+                  onClick={() => setShowStretchForm(false)}
+                  className="px-4 py-2 rounded-lg border border-border text-[#5E5278] text-xs font-semibold hover:text-foreground transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right: Super Aimee Hero Image */}
