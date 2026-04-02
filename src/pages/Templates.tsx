@@ -166,7 +166,8 @@ export default function Templates() {
       {/* ── Left Pane ── */}
       <div className={cn(
         'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
-        isMobile && (showDetail || creating || selected5x5) && 'hidden'
+        (isMobile && (showDetail || creating || selected5x5)) && 'hidden',
+        !isMobile && showPicker && 'hidden'
       )}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">

@@ -69,9 +69,9 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         </button>
       </div>
 
-      {/* Search + favorites + my gym */}
-      <div className="px-6 py-3 border-b border-border shrink-0 flex items-center gap-3">
-        <div className="flex-1 relative">
+      {/* Search + filters */}
+      <div className="px-6 py-3 border-b border-border shrink-0 space-y-2">
+        <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E5278] pointer-events-none" />
           <Input
             placeholder="Search exercises…"
@@ -89,41 +89,43 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
             </button>
           )}
         </div>
-        <button
-          onClick={() => setFavoritesOnly((v) => !v)}
-          className={cn(
-            'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all',
-            favoritesOnly
-              ? 'border-[#E91E8C] text-[#E91E8C] bg-[#E91E8C]/10 neon-glow'
-              : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
-          )}
-        >
-          <Star size={12} className={cn(favoritesOnly && 'fill-[#E91E8C]')} />
-          Favorites
-        </button>
-        <button
-          onClick={() => setMyEquipmentOnly((v) => !v)}
-          className={cn(
-            'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all',
-            myEquipmentOnly
-              ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 cyan-glow'
-              : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
-          )}
-        >
-          <Dumbbell size={12} />
-          My gym
-        </button>
-        <button
-          onClick={() => setBodyweightOnly((v) => !v)}
-          className={cn(
-            'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all',
-            bodyweightOnly
-              ? 'border-[#7DFFC4] text-[#7DFFC4] bg-[#7DFFC4]/10'
-              : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
-          )}
-        >
-          Bodyweight
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setFavoritesOnly((v) => !v)}
+            className={cn(
+              'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all',
+              favoritesOnly
+                ? 'border-[#E91E8C] text-[#E91E8C] bg-[#E91E8C]/10 neon-glow'
+                : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+            )}
+          >
+            <Star size={12} className={cn(favoritesOnly && 'fill-[#E91E8C]')} />
+            Favorites
+          </button>
+          <button
+            onClick={() => setMyEquipmentOnly((v) => !v)}
+            className={cn(
+              'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all',
+              myEquipmentOnly
+                ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 cyan-glow'
+                : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+            )}
+          >
+            <Dumbbell size={12} />
+            My gym
+          </button>
+          <button
+            onClick={() => setBodyweightOnly((v) => !v)}
+            className={cn(
+              'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all',
+              bodyweightOnly
+                ? 'border-[#7DFFC4] text-[#7DFFC4] bg-[#7DFFC4]/10'
+                : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+            )}
+          >
+            Bodyweight
+          </button>
+        </div>
       </div>
 
       {/* Muscle group chips */}
