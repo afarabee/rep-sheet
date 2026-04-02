@@ -253,7 +253,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Hero Section */}
-      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 px-4 md:px-10 pt-6 md:pt-8 pb-6">
+      <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 px-4 lg:px-10 pt-6 lg:pt-8 pb-6">
         {/* Left: Title + Actions */}
         <div className="flex-1 flex flex-col">
           <div className="mb-2">
@@ -349,7 +349,7 @@ export default function Home() {
 
         {/* Right: Super Aimee Hero Image */}
         <div
-          className="w-48 h-56 md:w-64 md:h-72 rounded-2xl flex-shrink-0 relative overflow-hidden hidden md:block"
+          className="w-48 h-56 lg:w-64 lg:h-72 rounded-2xl flex-shrink-0 relative overflow-hidden hidden lg:block"
           style={{
             background: 'linear-gradient(135deg, #241838 0%, #1A1028 100%)',
             border: '1px solid #3D2E5C',
@@ -362,7 +362,7 @@ export default function Home() {
 
       {/* Active Workout Banner */}
       {activeWorkout && (
-        <div className="mx-4 md:mx-10 mb-4 p-4 rounded-2xl border border-[#7DFFC4]/30 bg-[#7DFFC4]/5 flex items-center justify-between">
+        <div className="mx-4 lg:mx-10 mb-4 p-4 rounded-2xl border border-[#7DFFC4]/30 bg-[#7DFFC4]/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="relative flex w-3 h-3 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7DFFC4] opacity-75" />
@@ -432,7 +432,7 @@ export default function Home() {
       )}
 
       {/* Recent Workouts */}
-      <div className="px-4 md:px-10 pb-8">
+      <div className="px-4 lg:px-10 pb-8">
         <div className="text-[11px] font-black text-[#5E5278] uppercase tracking-[0.25em] mb-3">
           Recent Workouts
         </div>
@@ -441,7 +441,7 @@ export default function Home() {
             No workouts yet — start your first one above.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {recentWorkouts.map((w) => (
               <WorkoutCard key={w.id} {...w} />
             ))}
@@ -450,8 +450,8 @@ export default function Home() {
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 md:px-10 pb-8">
-        <div className="flex flex-col md:flex-row gap-3">
+      <div className="px-4 lg:px-10 pb-8">
+        <div className="flex flex-col lg:flex-row gap-3">
           {statCards.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}

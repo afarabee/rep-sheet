@@ -270,7 +270,7 @@ export default function Library() {
     <div className="flex flex-col h-full">
 
       {/* ── Header Bar ── */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 md:px-8 py-4 md:py-5 flex flex-wrap items-center gap-3 md:gap-4">
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 lg:px-8 py-4 lg:py-5 flex flex-wrap items-center gap-3 lg:gap-4">
         <h1 className="font-display text-2xl text-foreground shrink-0 uppercase tracking-wide">
           Exercise{' '}
           <span className="text-[#E91E8C] text-neon-glow">Library</span>
@@ -312,11 +312,11 @@ export default function Library() {
 
       {/* ── Add / Edit Form ── */}
       {showForm && (
-        <div className="border-b border-border bg-card px-4 md:px-8 py-5">
+        <div className="border-b border-border bg-card px-4 lg:px-8 py-5">
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5E5278] mb-4">
             {isEditing ? 'Edit Exercise' : 'New Custom Exercise'}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-3 mb-3">
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr] gap-3 mb-3">
             <div className="flex flex-col gap-1.5">
               <Label className="text-xs text-muted-foreground">Name *</Label>
               <Input
@@ -394,7 +394,7 @@ export default function Library() {
       )}
 
       {/* ── Filter Bar ── */}
-      <div className="sticky top-[73px] z-10 bg-background border-b border-border px-4 md:px-8 pt-3 pb-3 flex flex-col gap-2">
+      <div className="sticky top-[73px] z-10 bg-background border-b border-border px-4 lg:px-8 pt-3 pb-3 flex flex-col gap-2">
         {/* Muscle group chips */}
         <div className="flex flex-wrap items-center gap-2">
           {['all', ...MUSCLE_GROUPS].map((mg) => {
@@ -479,7 +479,7 @@ export default function Library() {
       </div>
 
       {/* ── Exercise List ── */}
-      <div className="flex-1 px-4 md:px-8 pb-8">
+      <div className="flex-1 px-4 lg:px-8 pb-8">
         {loading && (
           <div className="flex items-center justify-center py-20">
             <p className="font-display text-xl uppercase tracking-widest text-[#5E5278]">

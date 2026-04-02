@@ -321,11 +321,11 @@ export default function History() {
   })
 
   return (
-    <div className="h-full flex flex-col md:flex-row overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
 
       {/* ── Left Pane: Workout List ── */}
       <div className={cn(
-        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
         isMobile && showDetail && 'hidden'
       )}>
         <div className="px-5 py-4 border-b border-border shrink-0">
@@ -397,7 +397,7 @@ export default function History() {
 
       {/* ── Right Pane: Detail ── */}
       <div className={cn(
-        'flex-1 overflow-y-auto p-4 md:p-6 bg-radial-purple',
+        'flex-1 overflow-y-auto p-4 lg:p-6 bg-radial-purple',
         isMobile && !showDetail && 'hidden'
       )}>
         {isMobile && showDetail && (

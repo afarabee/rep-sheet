@@ -468,10 +468,10 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-full overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-full overflow-hidden">
       {/* ── Left nav ── */}
       <div className={cn(
-        'w-full md:w-64 md:shrink-0 flex flex-col border-r border-border h-full',
+        'w-full lg:w-64 lg:shrink-0 flex flex-col border-r border-border h-full',
         isMobile && showDetail && 'hidden'
       )}>
         <div className="px-4 pt-5 pb-4 shrink-0">
@@ -504,7 +504,7 @@ export default function Settings() {
 
       {/* ── Right content ── */}
       <div className={cn(
-        'flex-1 overflow-y-auto p-4 md:p-6 max-w-xl',
+        'flex-1 overflow-y-auto p-4 lg:p-6 max-w-xl',
         isMobile && !showDetail && 'hidden'
       )}>
         {isMobile && showDetail && (

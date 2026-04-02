@@ -203,11 +203,11 @@ export default function FiveByFiveWorkout() {
   )
 
   return (
-    <div className="h-full flex flex-col md:flex-row overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
 
       {/* ── Left Pane ── */}
       <div className={cn(
-        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
         isMobile && !showExerciseList && 'hidden'
       )}>
 
@@ -367,7 +367,7 @@ export default function FiveByFiveWorkout() {
         </div>
       ) : (
         <div className={cn(
-          'flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-radial-purple',
+          'flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
           isMobile && showExerciseList && 'hidden'
         )}>
 
@@ -375,7 +375,7 @@ export default function FiveByFiveWorkout() {
           {isMobile && status === 'active' && activeExercise && (
             <button
               onClick={() => setShowExerciseList(true)}
-              className="md:hidden mb-3 text-xs font-semibold text-[#9B8FB0] hover:text-foreground transition-colors"
+              className="lg:hidden mb-3 text-xs font-semibold text-[#9B8FB0] hover:text-foreground transition-colors"
             >
               ← Exercises
             </button>
