@@ -685,9 +685,25 @@ export default function FiveByFiveWorkout() {
 
               {/* Log set card — hidden when exercise is complete */}
               {!isCurrentComplete && (
-                <div className="bg-card border border-border rounded-2xl p-7 mb-5">
-                  <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#00E5FF] mb-5 text-cyan-glow">
-                    Log Set {nextSetNumber} of 5
+                <div className={cn(
+                  'bg-card border rounded-2xl p-7 mb-5',
+                  isCount ? 'border-[#7DFFC4]/40' : isTimed ? 'border-[#00E5FF]/40' : 'border-border'
+                )}>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className={cn(
+                      'text-[11px] font-black uppercase tracking-[0.25em]',
+                      isCount ? 'text-[#7DFFC4]' : isTimed ? 'text-[#00E5FF] text-cyan-glow' : 'text-[#00E5FF] text-cyan-glow'
+                    )}>
+                      Log Set {nextSetNumber} of 5
+                    </div>
+                    {(isCount || isTimed) && (
+                      <span className={cn(
+                        'text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded',
+                        isCount ? 'bg-[#7DFFC4]/15 text-[#7DFFC4]' : 'bg-[#00E5FF]/15 text-[#00E5FF]'
+                      )}>
+                        {isCount ? 'Count Mode' : 'Timed Mode'}
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-6 items-end">
                     {!isBodyweight && (
