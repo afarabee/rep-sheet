@@ -174,6 +174,8 @@ export default function Library() {
     setSearchQuery,
     selectedMuscleGroups,
     setSelectedMuscleGroups,
+    selectedEquipmentTypes,
+    setSelectedEquipmentTypes,
     myEquipmentOnly,
     setMyEquipmentOnly,
     bodyweightOnly,
@@ -195,6 +197,7 @@ export default function Library() {
   const [formEquipmentType, setFormEquipmentType] = useState('')
   const [formDescription, setFormDescription] = useState('')
   const [formIsTimed, setFormIsTimed] = useState(false)
+  const [formIsCount, setFormIsCount] = useState(false)
   const [formSaving, setFormSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -206,6 +209,7 @@ export default function Library() {
     setFormEquipmentType('')
     setFormDescription('')
     setFormIsTimed(false)
+    setFormIsCount(false)
     setFormError(null)
     setFormSaving(false)
   }
@@ -218,6 +222,7 @@ export default function Library() {
     setFormEquipmentType(exercise.equipment_type ?? '')
     setFormDescription(exercise.description ?? '')
     setFormIsTimed(exercise.is_timed ?? false)
+    setFormIsCount(exercise.is_count ?? false)
     setFormError(null)
   }
 
@@ -233,6 +238,7 @@ export default function Library() {
           equipment_type: formEquipmentType || 'other',
           description: formDescription.trim() || null,
           is_timed: formIsTimed,
+          is_count: formIsCount,
         })
       } else {
         const data: NewExercise = {
@@ -241,6 +247,7 @@ export default function Library() {
           equipment_type: formEquipmentType || 'other',
           description: formDescription.trim() || undefined,
           is_timed: formIsTimed,
+          is_count: formIsCount,
         }
         await addCustomExercise(data)
       }
@@ -254,6 +261,7 @@ export default function Library() {
   function handleClearFilters() {
     setSearchQuery('')
     setSelectedMuscleGroups([])
+    setSelectedEquipmentTypes([])
     setMyEquipmentOnly(false)
   }
 
@@ -362,20 +370,36 @@ export default function Library() {
               className="bg-background"
             />
           </div>
-          <label className="flex items-center gap-2 mb-4 cursor-pointer">
-            <span
-              onClick={() => setFormIsTimed((v) => !v)}
-              className={cn(
-                'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
-                formIsTimed ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
-              )}
-            >
-              {formIsTimed && <Check size={10} className="text-[#0F0A1A]" />}
-            </span>
-            <span className="text-xs text-muted-foreground" onClick={() => setFormIsTimed((v) => !v)}>
-              Timed exercise (log seconds instead of reps)
-            </span>
-          </label>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span
+                onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}
+                className={cn(
+                  'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
+                  formIsTimed ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
+                )}
+              >
+                {formIsTimed && <Check size={10} className="text-[#0F0A1A]" />}
+              </span>
+              <span className="text-xs text-muted-foreground" onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}>
+                Timed exercise (log seconds instead of reps)
+              </span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <span
+                onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}
+                className={cn(
+                  'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
+                  formIsCount ? 'border-[#7DFFC4] bg-[#7DFFC4]' : 'border-[#5E5278]'
+                )}
+              >
+                {formIsCount && <Check size={10} className="text-[#0F0A1A]" />}
+              </span>
+              <span className="text-xs text-muted-foreground" onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}>
+                Count exercise (log count, weight optional)
+              </span>
+            </label>
+          </div>
           {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={handleCancelForm}>
@@ -422,6 +446,38 @@ export default function Library() {
                 )}
               >
                 {isAll ? 'All' : formatLabel(mg)}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Equipment type chips */}
+        <div className="flex flex-wrap items-center gap-2">
+          {['all', ...EQUIPMENT_TYPES].map((eq) => {
+            const isAll = eq === 'all'
+            const isActive = isAll ? selectedEquipmentTypes.length === 0 : selectedEquipmentTypes.includes(eq)
+            return (
+              <button
+                key={eq}
+                onClick={() => {
+                  if (isAll) {
+                    setSelectedEquipmentTypes([])
+                  } else {
+                    setSelectedEquipmentTypes(
+                      selectedEquipmentTypes.includes(eq)
+                        ? selectedEquipmentTypes.filter((e) => e !== eq)
+                        : [...selectedEquipmentTypes, eq]
+                    )
+                  }
+                }}
+                className={cn(
+                  'shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150 border whitespace-nowrap',
+                  isActive
+                    ? 'bg-[#00E5FF] border-[#00E5FF] text-[#0F0A1A] cyan-glow'
+                    : 'bg-card border-border text-[#9B8FB0] hover:border-[#3D2E5C] hover:text-foreground'
+                )}
+              >
+                {isAll ? 'All Equipment' : formatLabel(eq)}
               </button>
             )
           })}

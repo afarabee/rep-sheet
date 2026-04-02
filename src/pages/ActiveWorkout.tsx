@@ -154,6 +154,7 @@ export default function ActiveWorkout() {
   const nextSetNumber = (activeExercise?.sets.length ?? 0) + 1
   const isBodyweight = activeExercise?.equipment_type === 'bodyweight'
   const isTimed = activeExercise?.is_timed ?? false
+  const isCount = activeExercise?.is_count ?? false
 
   if (error) {
     return (
@@ -288,7 +289,7 @@ export default function ActiveWorkout() {
       {showPicker ? (
         <div className={cn('flex-1 overflow-hidden', isMobile && showExerciseList && 'hidden')}>
           <ExercisePicker
-            onAdd={(exerciseId, name, equipmentType, isTimed) => addExercise(exerciseId, name, equipmentType, isTimed)}
+            onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => addExercise(exerciseId, name, equipmentType, isTimed, isCount)}
             onClose={() => setShowPicker(false)}
             alreadyAddedIds={alreadyAddedIds}
           />
@@ -408,7 +409,7 @@ export default function ActiveWorkout() {
                     />
                   )}
                   <NumericInput
-                    label={isTimed ? 'Time (sec)' : 'Reps'}
+                    label={isCount ? 'Count' : isTimed ? 'Time (sec)' : 'Reps'}
                     value={repsInput}
                     onChange={setRepsInput}
                     step={isTimed ? 5 : 1}
@@ -459,7 +460,7 @@ export default function ActiveWorkout() {
                               ? `${set.weight_lbs} lbs`
                               : 'Bodyweight'}
                             {set.reps != null && (
-                              <span className="text-[#9B8FB0]"> × {isTimed ? `${set.reps}s` : `${set.reps} reps`}</span>
+                              <span className="text-[#9B8FB0]"> × {isCount ? `${set.reps} count` : isTimed ? `${set.reps}s` : `${set.reps} reps`}</span>
                             )}
                           </span>
                         </div>

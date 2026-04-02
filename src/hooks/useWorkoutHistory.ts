@@ -24,6 +24,7 @@ export interface WorkoutExerciseDetail {
   sort_order: number
   exercise_name: string
   is_timed: boolean
+  is_count: boolean
   sets: WorkoutSetDetail[]
 }
 
@@ -85,7 +86,7 @@ export function useWorkoutHistory() {
           .single(),
         supabase
           .from('workout_exercises')
-          .select('id, exercise_id, sort_order, exercises(name, is_timed), workout_sets(id, set_number, weight_lbs, reps, completed)')
+          .select('id, exercise_id, sort_order, exercises(name, is_timed, is_count), workout_sets(id, set_number, weight_lbs, reps, completed)')
           .eq('workout_id', selectedId)
           .order('sort_order', { ascending: true }),
       ])
@@ -97,13 +98,14 @@ export function useWorkoutHistory() {
 
       const w = workoutResult.data
       const exercises: WorkoutExerciseDetail[] = (exercisesResult.data ?? []).map((ex) => {
-        const exData = ex.exercises as unknown as { name: string; is_timed: boolean } | null
+        const exData = ex.exercises as unknown as { name: string; is_timed: boolean; is_count: boolean } | null
         return {
         id: ex.id,
         exercise_id: ex.exercise_id,
         sort_order: ex.sort_order,
         exercise_name: exData?.name ?? 'Unknown',
         is_timed: exData?.is_timed ?? false,
+        is_count: exData?.is_count ?? false,
         sets: ((ex.workout_sets as WorkoutSetDetail[]) ?? [])
           .slice()
           .sort((a, b) => a.set_number - b.set_number),

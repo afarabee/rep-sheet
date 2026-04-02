@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { useExercises } from '@/hooks/useExercises'
 
 interface ExercisePickerProps {
-  onAdd: (exerciseId: string, name: string, equipmentType: string | null, isTimed: boolean) => void
+  onAdd: (exerciseId: string, name: string, equipmentType: string | null, isTimed: boolean, isCount: boolean) => void
   onClose: () => void
   alreadyAddedIds: string[]
 }
@@ -23,6 +23,8 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     setBodyweightOnly,
     selectedMuscleGroups,
     setSelectedMuscleGroups,
+    selectedEquipmentTypes,
+    setSelectedEquipmentTypes,
   } = useExercises()
   const [favoritesOnly, setFavoritesOnly] = useState(false)
 
@@ -34,9 +36,21 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     return Array.from(groups).sort()
   }, [allExercises])
 
+  const equipmentTypes = useMemo(() => {
+    const types = new Set<string>()
+    allExercises.forEach((ex) => { if (ex.equipment_type) types.add(ex.equipment_type) })
+    return Array.from(types).sort()
+  }, [allExercises])
+
   function toggleMuscleGroup(group: string) {
     setSelectedMuscleGroups((prev) =>
       prev.includes(group) ? prev.filter((g) => g !== group) : [...prev, group]
+    )
+  }
+
+  function toggleEquipmentType(type: string) {
+    setSelectedEquipmentTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     )
   }
 
@@ -132,6 +146,26 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         </div>
       )}
 
+      {/* Equipment type chips */}
+      {equipmentTypes.length > 0 && (
+        <div className="px-6 py-2.5 border-b border-border shrink-0 flex flex-wrap gap-1.5">
+          {equipmentTypes.map((type) => (
+            <button
+              key={type}
+              onClick={() => toggleEquipmentType(type)}
+              className={cn(
+                'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all',
+                selectedEquipmentTypes.includes(type)
+                  ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10'
+                  : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+              )}
+            >
+              {type.replace(/_/g, ' ')}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Exercise list */}
       <div className="flex-1 overflow-y-auto pb-6">
         {loading && (
@@ -158,7 +192,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
           return (
             <div
               key={ex.id}
-              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type, ex.is_timed) }}
+              onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type, ex.is_timed, ex.is_count) }}
               className={cn(
                 'flex items-center gap-3 px-6 py-3 border-b border-border min-h-[52px] transition-colors',
                 alreadyAdded

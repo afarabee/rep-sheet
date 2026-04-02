@@ -12,6 +12,7 @@ export interface Exercise {
   is_custom: boolean
   is_favorite: boolean
   is_timed: boolean
+  is_count: boolean
   source: string | null
   created_at: string
 }
@@ -22,6 +23,7 @@ export interface NewExercise {
   equipment_type: string
   description?: string
   is_timed?: boolean
+  is_count?: boolean
 }
 
 export function useExercises() {
@@ -32,6 +34,7 @@ export function useExercises() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([])
+  const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>([])
   const [myEquipmentOnly, setMyEquipmentOnly] = useState(true)
   const [bodyweightOnly, setBodyweightOnly] = useState(false)
 
@@ -76,7 +79,9 @@ export function useExercises() {
       result = result.filter((ex) => ex.muscle_group !== null && selectedMuscleGroups.includes(ex.muscle_group))
     }
 
-    if (bodyweightOnly) {
+    if (selectedEquipmentTypes.length > 0) {
+      result = result.filter((ex) => ex.equipment_type !== null && selectedEquipmentTypes.includes(ex.equipment_type))
+    } else if (bodyweightOnly) {
       result = result.filter((ex) => ex.equipment_type === 'bodyweight')
     } else if (myEquipmentOnly) {
       result = result.filter(
@@ -90,7 +95,7 @@ export function useExercises() {
       if (a.is_favorite === b.is_favorite) return a.name.localeCompare(b.name)
       return a.is_favorite ? -1 : 1
     })
-  }, [exercises, searchQuery, selectedMuscleGroups, myEquipmentOnly, bodyweightOnly, ownedEquipmentTypes])
+  }, [exercises, searchQuery, selectedMuscleGroups, selectedEquipmentTypes, myEquipmentOnly, bodyweightOnly, ownedEquipmentTypes])
 
   async function toggleFavorite(id: string, current: boolean) {
     // Optimistic update
@@ -119,6 +124,7 @@ export function useExercises() {
       is_custom: true,
       is_favorite: false,
       is_timed: data.is_timed ?? false,
+      is_count: data.is_count ?? false,
       source: 'custom',
     }
     const { data: newRow, error } = await supabase
@@ -130,7 +136,7 @@ export function useExercises() {
     setExercises((prev) => [newRow as Exercise, ...prev])
   }
 
-  async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description' | 'is_timed'>>) {
+  async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description' | 'is_timed' | 'is_count'>>) {
     const prev = exercises.find((ex) => ex.id === id)
     if (!prev) return
     // Optimistic update
@@ -194,6 +200,8 @@ export function useExercises() {
     setSearchQuery,
     selectedMuscleGroups,
     setSelectedMuscleGroups,
+    selectedEquipmentTypes,
+    setSelectedEquipmentTypes,
     myEquipmentOnly,
     setMyEquipmentOnly,
     bodyweightOnly,
