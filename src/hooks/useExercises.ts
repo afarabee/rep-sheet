@@ -35,7 +35,7 @@ export function useExercises() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([])
   const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>([])
-  const [myEquipmentOnly, setMyEquipmentOnly] = useState(true)
+  const [myEquipmentOnly, setMyEquipmentOnly] = useState(false)
   const [bodyweightOnly, setBodyweightOnly] = useState(false)
 
   useEffect(() => {

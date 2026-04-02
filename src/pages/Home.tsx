@@ -262,8 +262,8 @@ export default function Home() {
             </span>
           </div>
           <h1 className="font-display text-5xl mb-1.5 leading-tight">
-            Ready to lift,<br />
-            <span className="text-gradient-hero">Super Aimee?</span>
+            Seeing your six-pack yet,<br />
+            <span className="text-gradient-hero">Aimee?</span>
           </h1>
           <div className="text-sm text-[#9B8FB0] mb-7">
             Next up:{' '}
