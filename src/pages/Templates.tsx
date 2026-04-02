@@ -161,11 +161,11 @@ export default function Templates() {
       : detail?.exercises.map((e) => e.exercise_id) ?? []
 
   return (
-    <div className="h-full flex flex-col md:flex-row overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
 
       {/* ── Left Pane ── */}
       <div className={cn(
-        'w-full md:w-80 md:shrink-0 border-r border-border bg-card flex flex-col',
+        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
         isMobile && (showDetail || creating || selected5x5) && 'hidden'
       )}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -262,7 +262,7 @@ export default function Templates() {
       )}>
 
         {/* Detail / create area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-radial-purple">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-radial-purple">
 
           {/* Mobile back button */}
           {isMobile && (showDetail || creating) && (
@@ -611,7 +611,7 @@ export default function Templates() {
 
         {/* Exercise picker panel */}
         {showPicker && (creating || detail || selected5x5) && (
-          <div className="w-full md:w-96 md:shrink-0 border-l border-border overflow-hidden">
+          <div className="w-full lg:w-96 lg:shrink-0 border-l border-border overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name) => {
                 if (creating) {

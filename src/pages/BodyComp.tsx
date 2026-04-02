@@ -622,7 +622,7 @@ export default function BodyComp() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-full overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-full overflow-hidden">
       <input
         ref={fileInputRef}
         type="file"
@@ -633,7 +633,7 @@ export default function BodyComp() {
 
       {/* ── Left pane ── */}
       <div className={cn(
-        'w-full md:w-80 md:shrink-0 flex flex-col border-r border-border h-full overflow-hidden',
+        'w-full lg:w-80 lg:shrink-0 flex flex-col border-r border-border h-full overflow-hidden',
         isMobile && rightPane !== 'idle' && 'hidden'
       )}>
 
@@ -712,7 +712,7 @@ export default function BodyComp() {
 
       {/* ── Right pane ── */}
       <div className={cn(
-        'flex-1 overflow-y-auto p-4 md:p-6',
+        'flex-1 overflow-y-auto p-4 lg:p-6',
         isMobile && rightPane === 'idle' && 'hidden'
       )}>
         {isMobile && rightPane !== 'idle' && (
