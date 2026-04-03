@@ -24,6 +24,7 @@ export interface NewExercise {
   description?: string
   is_timed?: boolean
   is_count?: boolean
+  is_favorite?: boolean
 }
 
 export function useExercises() {
@@ -127,7 +128,7 @@ export function useExercises() {
       description: data.description ?? null,
       is_active: true,
       is_custom: true,
-      is_favorite: false,
+      is_favorite: data.is_favorite ?? false,
       is_timed: data.is_timed ?? false,
       is_count: data.is_count ?? false,
       source: 'custom',

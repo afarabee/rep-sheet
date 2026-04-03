@@ -57,6 +57,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
   const [formEquipmentType, setFormEquipmentType] = useState('')
   const [formIsTimed, setFormIsTimed] = useState(false)
   const [formIsCount, setFormIsCount] = useState(false)
+  const [formIsFavorite, setFormIsFavorite] = useState(false)
   const [formSaving, setFormSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -66,6 +67,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     setFormEquipmentType('')
     setFormIsTimed(false)
     setFormIsCount(false)
+    setFormIsFavorite(false)
     setFormError(null)
     setShowCreateForm(true)
   }
@@ -81,6 +83,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         equipment_type: formEquipmentType || 'other',
         is_timed: formIsTimed,
         is_count: formIsCount,
+        is_favorite: formIsFavorite,
       }
       const newExercise = await addCustomExercise(data)
       onAdd(newExercise.id, newExercise.name, newExercise.equipment_type, newExercise.is_timed, newExercise.is_count)
@@ -290,6 +293,16 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
               </div>
             </div>
             <div className="flex flex-wrap gap-x-5 gap-y-2 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer" onClick={() => setFormIsFavorite((v) => !v)}>
+                <Star
+                  size={16}
+                  className={cn(
+                    'transition-colors',
+                    formIsFavorite ? 'text-[#E91E8C] fill-[#E91E8C]' : 'text-[#5E5278]'
+                  )}
+                />
+                <span className="text-xs text-muted-foreground">Favorite</span>
+              </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <span
                   onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}
