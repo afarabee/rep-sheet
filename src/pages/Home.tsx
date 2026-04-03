@@ -212,13 +212,17 @@ export default function Home() {
     setStretchSaving(true)
     const completedAt = new Date()
     const startedAt = new Date(completedAt.getTime() - mins * 60000)
-    await supabase.from('workouts').insert({
+    const { error } = await supabase.from('workouts').insert({
       workout_type: 'stretch',
       started_at: startedAt.toISOString(),
       completed_at: completedAt.toISOString(),
       notes: stretchNotes.trim() || null,
     })
     setStretchSaving(false)
+    if (error) {
+      console.error('Failed to save stretch session:', error.message)
+      return
+    }
     setShowStretchForm(false)
     setStretchMinutes('10')
     setStretchNotes('')
