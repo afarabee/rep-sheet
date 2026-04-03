@@ -108,6 +108,7 @@ export default function Home() {
   const [stretchMinutes, setStretchMinutes] = useState('10')
   const [stretchNotes, setStretchNotes] = useState('')
   const [stretchSaving, setStretchSaving] = useState(false)
+  const [stretchError, setStretchError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -210,24 +211,34 @@ export default function Home() {
     const mins = parseInt(stretchMinutes)
     if (!mins || mins <= 0) return
     setStretchSaving(true)
+    setStretchError(null)
     const completedAt = new Date()
     const startedAt = new Date(completedAt.getTime() - mins * 60000)
-    const { error } = await supabase.from('workouts').insert({
+    const { data, error } = await supabase.from('workouts').insert({
       workout_type: 'stretch',
       started_at: startedAt.toISOString(),
       completed_at: completedAt.toISOString(),
       notes: stretchNotes.trim() || null,
-    })
-    setStretchSaving(false)
+    }).select('id, workout_type, started_at, completed_at').single()
     if (error) {
-      console.error('Failed to save stretch session:', error.message)
+      setStretchError(error.message)
+      setStretchSaving(false)
       return
     }
+    // Update recent workouts in-place
+    setRecentWorkouts((prev) => [{
+      id: data.id,
+      date: formatDate(data.started_at!),
+      type: formatWorkoutType(data.workout_type),
+      status: 'complete' as const,
+      exercises: '',
+      duration: formatDuration(data.started_at, data.completed_at),
+    }, ...prev].slice(0, 4))
+    setStats((prev) => ({ ...prev, totalWorkouts: (prev.totalWorkouts ?? 0) + 1 }))
+    setStretchSaving(false)
     setShowStretchForm(false)
     setStretchMinutes('10')
     setStretchNotes('')
-    // Refresh recent workouts
-    window.location.reload()
   }
 
   const statCards = [
@@ -332,6 +343,7 @@ export default function Home() {
                   />
                 </div>
               </div>
+              {stretchError && <p className="text-xs text-[#FF4D6A] mb-2">{stretchError}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={handleLogStretch}

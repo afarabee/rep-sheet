@@ -4,6 +4,7 @@ import { X, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActiveWorkout } from '@/hooks/useActiveWorkout'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -123,6 +124,7 @@ export default function ActiveWorkout() {
   const [weightInput, setWeightInput] = useState('')
   const [repsInput, setRepsInput] = useState('')
   const [notes, setNotes] = useState('')
+  const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer()
 
   const activeExercise = workoutExercises[activeExerciseIndex] ?? null
 
@@ -132,7 +134,13 @@ export default function ActiveWorkout() {
     const lastSet = activeExercise.sets[activeExercise.sets.length - 1]
     setWeightInput(lastSet?.weight_lbs != null ? String(lastSet.weight_lbs) : '')
     setRepsInput(lastSet?.reps != null ? String(lastSet.reps) : '')
+    cancelTimer()
   }, [activeExerciseIndex, activeExercise?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-populate repsInput when exercise timer stops
+  useEffect(() => {
+    if (timerState === 'stopped') setRepsInput(String(timerSeconds))
+  }, [timerState]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Navigate away when workout ends
   useEffect(() => {
@@ -144,6 +152,7 @@ export default function ActiveWorkout() {
     const weight = weightInput !== '' ? parseFloat(weightInput) : null
     const reps = repsInput !== '' ? parseInt(repsInput, 10) : null
     await logSet(activeExercise.id, isNaN(weight as number) ? null : weight, isNaN(reps as number) ? null : reps)
+    cancelTimer()
   }
 
   async function handleEndWorkout() {
@@ -414,8 +423,8 @@ export default function ActiveWorkout() {
                   )}
                 </div>
 
-                <div className="flex gap-6 items-end">
-                  {!isBodyweight && (
+                <div className="flex gap-6 items-end flex-wrap">
+                  {!isBodyweight && !isCount && (
                     <NumericInput
                       label="Weight (lbs)"
                       value={weightInput}
@@ -424,13 +433,61 @@ export default function ActiveWorkout() {
                       placeholder="—"
                     />
                   )}
-                  <NumericInput
-                    label={isCount ? 'Count' : isTimed ? 'Time (sec)' : 'Reps'}
-                    value={repsInput}
-                    onChange={setRepsInput}
-                    step={isTimed ? 5 : 1}
-                    placeholder="—"
-                  />
+
+                  {isTimed ? (
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#B8AECE]">
+                        Time
+                      </label>
+                      <span
+                        className="font-display text-5xl min-w-[130px] text-center"
+                        style={{
+                          color: timerState === 'running' ? '#00E5FF' : timerState === 'paused' ? '#FFD700' : '#B8AECE',
+                          textShadow: timerState === 'running' ? '0 0 20px rgba(0,229,255,0.4)' : 'none',
+                        }}
+                      >
+                        {formatTime(timerState === 'idle' || timerState === 'running' || timerState === 'paused' ? timerSeconds : parseInt(repsInput) || 0)}
+                      </span>
+                      <div className="flex gap-2">
+                        {timerState === 'idle' && (
+                          <button onClick={startTimer} className="px-4 py-2 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
+                            Start
+                          </button>
+                        )}
+                        {timerState === 'running' && (
+                          <button onClick={pauseTimer} className="px-4 py-2 rounded-xl bg-[#FFD700] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
+                            Pause
+                          </button>
+                        )}
+                        {timerState === 'paused' && (
+                          <button onClick={resumeTimer} className="px-4 py-2 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
+                            Resume
+                          </button>
+                        )}
+                        {(timerState === 'running' || timerState === 'paused') && (
+                          <button onClick={stopTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#B8AECE] text-xs font-bold uppercase tracking-wider hover:border-[#8B7FA6] hover:text-foreground transition-colors">
+                            Stop
+                          </button>
+                        )}
+                        {timerState !== 'idle' && (
+                          <button onClick={cancelTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#FF4D6A] text-xs font-bold uppercase tracking-wider hover:border-[#FF4D6A] transition-colors">
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                      {timerState === 'stopped' && (
+                        <NumericInput label="Adjust (sec)" value={repsInput} onChange={setRepsInput} step={5} placeholder="—" />
+                      )}
+                    </div>
+                  ) : (
+                    <NumericInput
+                      label={isCount ? 'Count' : 'Reps'}
+                      value={repsInput}
+                      onChange={setRepsInput}
+                      step={1}
+                      placeholder="—"
+                    />
+                  )}
 
                   {/* Log Set button */}
                   <button
