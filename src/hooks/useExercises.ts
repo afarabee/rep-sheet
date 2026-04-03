@@ -119,7 +119,7 @@ export function useExercises() {
     }
   }
 
-  async function addCustomExercise(data: NewExercise) {
+  async function addCustomExercise(data: NewExercise): Promise<Exercise> {
     const payload = {
       name: data.name,
       muscle_group: data.muscle_group,
@@ -138,7 +138,9 @@ export function useExercises() {
       .select()
       .single()
     if (error) throw new Error(error.message)
-    setExercises((prev) => [newRow as Exercise, ...prev])
+    const exercise = newRow as Exercise
+    setExercises((prev) => [exercise, ...prev])
+    return exercise
   }
 
   async function updateExercise(id: string, fields: Partial<Pick<Exercise, 'name' | 'muscle_group' | 'equipment_type' | 'description' | 'is_timed' | 'is_count'>>) {

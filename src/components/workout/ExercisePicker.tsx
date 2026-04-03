@@ -1,8 +1,27 @@
 import { useState, useMemo } from 'react'
-import { Search, X, Star, Dumbbell } from 'lucide-react'
+import { Search, X, Star, Dumbbell, Plus, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { useExercises } from '@/hooks/useExercises'
+import type { NewExercise } from '@/hooks/useExercises'
+
+const MUSCLE_GROUPS = [
+  'chest', 'lats', 'middle back', 'lower back', 'shoulders', 'traps',
+  'biceps', 'triceps', 'forearms',
+  'quadriceps', 'hamstrings', 'glutes', 'calves', 'abductors', 'adductors',
+  'abdominals', 'neck', 'mobility',
+]
+
+const EQUIPMENT_TYPES = [
+  'barbell', 'dumbbell', 'bodyweight', 'cable', 'machine',
+  'kettlebell', 'bands', 'ez_bar', 'exercise_ball',
+  'medicine_ball', 'foam_roller', 'other',
+]
+
+function formatLabel(s: string): string {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 interface ExercisePickerProps {
   onAdd: (exerciseId: string, name: string, equipmentType: string | null, isTimed: boolean, isCount: boolean) => void
@@ -27,8 +46,52 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     setSelectedMuscleGroups,
     selectedEquipmentTypes,
     setSelectedEquipmentTypes,
+    addCustomExercise,
   } = useExercises()
   const [favoritesOnly, setFavoritesOnly] = useState(false)
+
+  // Inline create form state
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [formName, setFormName] = useState('')
+  const [formMuscleGroup, setFormMuscleGroup] = useState('')
+  const [formEquipmentType, setFormEquipmentType] = useState('')
+  const [formIsTimed, setFormIsTimed] = useState(false)
+  const [formIsCount, setFormIsCount] = useState(false)
+  const [formSaving, setFormSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  function openCreateForm() {
+    setFormName(searchQuery)
+    setFormMuscleGroup('')
+    setFormEquipmentType('')
+    setFormIsTimed(false)
+    setFormIsCount(false)
+    setFormError(null)
+    setShowCreateForm(true)
+  }
+
+  async function handleCreateExercise() {
+    if (!formName.trim() || !formMuscleGroup) return
+    setFormSaving(true)
+    setFormError(null)
+    try {
+      const data: NewExercise = {
+        name: formName.trim(),
+        muscle_group: formMuscleGroup,
+        equipment_type: formEquipmentType || 'other',
+        is_timed: formIsTimed,
+        is_count: formIsCount,
+      }
+      const newExercise = await addCustomExercise(data)
+      onAdd(newExercise.id, newExercise.name, newExercise.equipment_type, newExercise.is_timed, newExercise.is_count)
+      setShowCreateForm(false)
+      setSearchQuery('')
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to create exercise')
+    } finally {
+      setFormSaving(false)
+    }
+  }
 
   const displayed = favoritesOnly ? exercises.filter((ex) => ex.is_favorite) : exercises
 
@@ -181,8 +244,100 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         </div>
       )}
 
-      {/* Exercise list */}
+      {/* Exercise list / Create form */}
       <div className="flex-1 overflow-y-auto pb-6">
+        {showCreateForm ? (
+          <div className="px-6 py-5">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7DFFC4] mb-4">
+              New Custom Exercise
+            </div>
+            <div className="flex flex-col gap-3 mb-3">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Name *</Label>
+                <Input
+                  value={formName}
+                  onChange={(e) => setFormName((e.target as HTMLInputElement).value)}
+                  placeholder="e.g. Cable Face Pull"
+                  className="bg-card border-border"
+                  autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Muscle Group *</Label>
+                <select
+                  value={formMuscleGroup}
+                  onChange={(e) => setFormMuscleGroup(e.target.value)}
+                  className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm text-foreground focus:border-[#E91E8C] focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/25 dark:bg-[#1A1028]"
+                >
+                  <option value="">Select…</option>
+                  {MUSCLE_GROUPS.map((mg) => (
+                    <option key={mg} value={mg}>{formatLabel(mg)}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Equipment</Label>
+                <select
+                  value={formEquipmentType}
+                  onChange={(e) => setFormEquipmentType(e.target.value)}
+                  className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm text-foreground focus:border-[#E91E8C] focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/25 dark:bg-[#1A1028]"
+                >
+                  <option value="">Select…</option>
+                  {EQUIPMENT_TYPES.map((eq) => (
+                    <option key={eq} value={eq}>{formatLabel(eq)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span
+                  onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}
+                  className={cn(
+                    'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
+                    formIsTimed ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
+                  )}
+                >
+                  {formIsTimed && <Check size={10} className="text-[#0F0A1A]" />}
+                </span>
+                <span className="text-xs text-muted-foreground" onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}>
+                  Timed
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span
+                  onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}
+                  className={cn(
+                    'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
+                    formIsCount ? 'border-[#7DFFC4] bg-[#7DFFC4]' : 'border-[#5E5278]'
+                  )}
+                >
+                  {formIsCount && <Check size={10} className="text-[#0F0A1A]" />}
+                </span>
+                <span className="text-xs text-muted-foreground" onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}>
+                  Count
+                </span>
+              </label>
+            </div>
+            {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateExercise}
+                disabled={formSaving || !formName.trim() || !formMuscleGroup}
+                className="px-4 py-2 rounded-lg bg-[#E91E8C] text-white text-xs font-black uppercase tracking-wider hover:brightness-110 disabled:opacity-40 transition-all"
+              >
+                {formSaving ? 'Saving…' : 'Create & Add'}
+              </button>
+            </div>
+          </div>
+        ) : (
+        <>
         {loading && (
           <div className="flex items-center justify-center py-16">
             <p className="text-[#5E5278] font-display text-lg uppercase tracking-widest">Loading…</p>
@@ -194,11 +349,20 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
             <p className="text-sm text-[#5E5278]">
               {searchQuery ? `No exercises match "${searchQuery}"` : 'No exercises found.'}
             </p>
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="mt-2 text-xs text-[#E91E8C] hover:underline">
-                Clear search
+            <div className="flex flex-col items-center gap-2 mt-3">
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="text-xs text-[#E91E8C] hover:underline">
+                  Clear search
+                </button>
+              )}
+              <button
+                onClick={openCreateForm}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#7DFFC4] hover:underline"
+              >
+                <Plus size={12} />
+                Create custom exercise{searchQuery ? ` "${searchQuery}"` : ''}
               </button>
-            )}
+            </div>
           </div>
         )}
 
@@ -245,6 +409,8 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
             </div>
           )
         })}
+        </>
+        )}
       </div>
     </div>
   )
