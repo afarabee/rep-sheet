@@ -14,6 +14,8 @@ interface DraftExercise {
   name: string
   prescribed_sets: number | null
   prescribed_reps: number | null
+  is_timed: boolean
+  is_count: boolean
 }
 
 // ─── Left pane: template list card ────────────────────────────────────────────
@@ -126,10 +128,10 @@ export default function Templates() {
   }
 
   // Draft exercise operations (local only)
-  function draftAddExercise(exerciseId: string, name: string) {
+  function draftAddExercise(exerciseId: string, name: string, _equipmentType?: string | null, isTimed?: boolean, isCount?: boolean) {
     const key = draftKey
     setDraftKey((k) => k + 1)
-    setDraftExercises((prev) => [...prev, { key, exercise_id: exerciseId, name, prescribed_sets: 3, prescribed_reps: null }])
+    setDraftExercises((prev) => [...prev, { key, exercise_id: exerciseId, name, prescribed_sets: 3, prescribed_reps: null, is_timed: isTimed ?? false, is_count: isCount ?? false }])
   }
 
   function draftRemoveExercise(key: number) {
@@ -469,7 +471,7 @@ export default function Templates() {
                         className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                         inputMode="numeric"
                       />
-                      <span>reps</span>
+                      <span>{ex.is_count ? 'count' : ex.is_timed ? 'sec' : 'reps'}</span>
                     </div>
                     <button
                       onClick={() => draftRemoveExercise(ex.key)}
@@ -586,7 +588,7 @@ export default function Templates() {
                             className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                             inputMode="numeric"
                           />
-                          <span>reps</span>
+                          <span>{ex.is_count ? 'count' : ex.is_timed ? 'sec' : 'reps'}</span>
                         </div>
                         <button
                           onClick={() => removeExercise(ex.id)}
@@ -614,13 +616,13 @@ export default function Templates() {
         {showPicker && (creating || detail || selected5x5) && (
           <div className="w-full lg:w-96 lg:shrink-0 border-l border-border overflow-hidden">
             <ExercisePicker
-              onAdd={(exerciseId, name) => {
+              onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => {
                 if (creating) {
-                  draftAddExercise(exerciseId, name)
+                  draftAddExercise(exerciseId, name, equipmentType, isTimed, isCount)
                 } else if (selected5x5) {
                   add5x5Exercise(selected5x5, exerciseId, name)
                 } else if (detail) {
-                  addExercise(detail.id, exerciseId, name)
+                  addExercise(detail.id, exerciseId, name, isTimed, isCount)
                 }
               }}
               onClose={() => setShowPicker(false)}

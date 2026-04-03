@@ -16,6 +16,8 @@ export interface TemplateExercise {
   name: string
   prescribed_sets: number | null
   prescribed_reps: number | null
+  is_timed: boolean
+  is_count: boolean
 }
 
 export interface TemplateDetail {
@@ -76,7 +78,7 @@ export function useTemplates() {
         .single(),
       supabase
         .from('workout_template_exercises')
-        .select('id, exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name)')
+        .select('id, exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, is_timed, is_count)')
         .eq('template_id', templateId)
         .order('sort_order', { ascending: true }),
     ])
@@ -91,9 +93,11 @@ export function useTemplates() {
         id: ex.id,
         exercise_id: ex.exercise_id,
         sort_order: ex.sort_order,
-        name: (ex.exercises as unknown as { name: string } | null)?.name ?? 'Unknown',
+        name: (ex.exercises as unknown as { name: string; is_timed: boolean; is_count: boolean } | null)?.name ?? 'Unknown',
         prescribed_sets: ex.prescribed_sets,
         prescribed_reps: ex.prescribed_reps,
+        is_timed: (ex.exercises as unknown as { is_timed: boolean } | null)?.is_timed ?? false,
+        is_count: (ex.exercises as unknown as { is_count: boolean } | null)?.is_count ?? false,
       })),
     })
     setDetailLoading(false)
@@ -156,7 +160,7 @@ export function useTemplates() {
     if (selectedId === id) { setSelectedId(null); setDetail(null) }
   }
 
-  async function addExercise(templateId: string, exerciseId: string, name: string) {
+  async function addExercise(templateId: string, exerciseId: string, name: string, isTimed?: boolean, isCount?: boolean) {
     setError(null)
     const currentCount = detail?.exercises.length ?? 0
     const { data, error: insertError } = await supabase
@@ -173,6 +177,8 @@ export function useTemplates() {
       name,
       prescribed_sets: 3,
       prescribed_reps: null,
+      is_timed: isTimed ?? false,
+      is_count: isCount ?? false,
     }
     setDetail((prev) => prev ? { ...prev, exercises: [...prev.exercises, newEx] } : prev)
     setTemplates((prev) =>
