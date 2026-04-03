@@ -1,22 +1,12 @@
 import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { formatDate, fmt } from '@/lib/formatters'
 import { useBodyComp, type BodyCompEntry } from '@/hooks/useBodyComp'
 import { useBodyMeasurements, type MeasurementSession } from '@/hooks/useBodyMeasurements'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
 import { Trash2, Loader2, Key, Camera, ScanLine, Activity, PenLine, Ruler } from 'lucide-react'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(ts: string): string {
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function fmt(val: number | null | undefined, decimals = 1): string {
-  if (val == null) return '—'
-  return val.toFixed(decimals)
-}
 
 function sourceLabel(source: string | null): string {
   switch (source) {
@@ -73,7 +63,7 @@ function EntryCard({ entry, isSelected, onClick }: {
       style={isSelected ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-xs text-[#5E5278]">{formatDate(entry.recorded_at)}</span>
+        <span className="text-xs text-[#8B7FA6]">{formatDate(entry.recorded_at, { withYear: true })}</span>
         {label && (
           <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#241838] text-[#7A6E90]">
             {label}
@@ -176,7 +166,7 @@ function EntryDetail({ entry, onDelete }: { entry: BodyCompEntry; onDelete: () =
     <div className="h-full flex flex-col">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs text-[#5E5278]">{formatDate(entry.recorded_at)}</span>
+          <span className="text-xs text-[#8B7FA6]">{formatDate(entry.recorded_at, { withYear: true })}</span>
           {label && (
             <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#241838] text-[#7A6E90]">
               {label}

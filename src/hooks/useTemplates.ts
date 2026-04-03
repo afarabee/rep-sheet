@@ -32,6 +32,7 @@ export function useTemplates() {
   const [detail, setDetail] = useState<TemplateDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Load template list on mount
   useEffect(() => {
@@ -102,17 +103,18 @@ export function useTemplates() {
     name: string,
     exercises: Array<{ exercise_id: string; prescribed_sets: number | null; prescribed_reps: number | null }>
   ): Promise<string | null> {
-    const { data, error } = await supabase
+    setError(null)
+    const { data, error: insertError } = await supabase
       .from('workout_templates')
       .insert({ name, notes: null })
       .select('id')
       .single()
-    if (error) return null
+    if (insertError) { setError(insertError.message); return null }
 
     const templateId = data.id
 
     if (exercises.length > 0) {
-      await supabase.from('workout_template_exercises').insert(
+      const { error: exError } = await supabase.from('workout_template_exercises').insert(
         exercises.map((ex, i) => ({
           template_id: templateId,
           exercise_id: ex.exercise_id,
@@ -121,6 +123,7 @@ export function useTemplates() {
           prescribed_reps: ex.prescribed_reps,
         }))
       )
+      if (exError) { setError(exError.message); return null }
     }
 
     const newTemplate: WorkoutTemplate = {
@@ -135,28 +138,33 @@ export function useTemplates() {
   }
 
   async function renameTemplate(id: string, name: string) {
-    await supabase
+    setError(null)
+    const { error } = await supabase
       .from('workout_templates')
       .update({ name, updated_at: new Date().toISOString() })
       .eq('id', id)
+    if (error) { setError(error.message); return }
     setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, name } : t))
     if (detail?.id === id) setDetail((prev) => prev ? { ...prev, name } : prev)
   }
 
   async function deleteTemplate(id: string) {
-    await supabase.from('workout_templates').delete().eq('id', id)
+    setError(null)
+    const { error } = await supabase.from('workout_templates').delete().eq('id', id)
+    if (error) { setError(error.message); return }
     setTemplates((prev) => prev.filter((t) => t.id !== id))
     if (selectedId === id) { setSelectedId(null); setDetail(null) }
   }
 
   async function addExercise(templateId: string, exerciseId: string, name: string) {
+    setError(null)
     const currentCount = detail?.exercises.length ?? 0
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('workout_template_exercises')
       .insert({ template_id: templateId, exercise_id: exerciseId, sort_order: currentCount })
       .select('id')
       .single()
-    if (error) return
+    if (insertError) { setError(insertError.message); return }
 
     const newEx: TemplateExercise = {
       id: data.id,
@@ -173,7 +181,9 @@ export function useTemplates() {
   }
 
   async function removeExercise(templateExerciseId: string) {
-    await supabase.from('workout_template_exercises').delete().eq('id', templateExerciseId)
+    setError(null)
+    const { error } = await supabase.from('workout_template_exercises').delete().eq('id', templateExerciseId)
+    if (error) { setError(error.message); return }
     setDetail((prev) => {
       if (!prev) return prev
       const filtered = prev.exercises.filter((e) => e.id !== templateExerciseId)
@@ -191,10 +201,12 @@ export function useTemplates() {
     prescribed_sets: number | null,
     prescribed_reps: number | null
   ) {
-    await supabase
+    setError(null)
+    const { error } = await supabase
       .from('workout_template_exercises')
       .update({ prescribed_sets, prescribed_reps })
       .eq('id', templateExerciseId)
+    if (error) { setError(error.message); return }
     setDetail((prev) =>
       prev
         ? {
@@ -208,6 +220,7 @@ export function useTemplates() {
   }
 
   async function reorderExercise(templateExerciseId: string, direction: 'up' | 'down') {
+    setError(null)
     if (!detail) return
     const idx = detail.exercises.findIndex((e) => e.id === templateExerciseId)
     if (idx === -1) return
@@ -217,10 +230,12 @@ export function useTemplates() {
     const entry = detail.exercises[idx]
     const swapEntry = detail.exercises[swapIdx]
 
-    await Promise.all([
+    const [res1, res2] = await Promise.all([
       supabase.from('workout_template_exercises').update({ sort_order: swapEntry.sort_order }).eq('id', entry.id),
       supabase.from('workout_template_exercises').update({ sort_order: entry.sort_order }).eq('id', swapEntry.id),
     ])
+    if (res1.error) { setError(res1.error.message); return }
+    if (res2.error) { setError(res2.error.message); return }
 
     const updated = [...detail.exercises]
     updated[idx] = { ...entry, sort_order: swapEntry.sort_order }
@@ -238,6 +253,7 @@ export function useTemplates() {
     detailLoading,
     creating,
     setCreating,
+    error,
     saveNewTemplate,
     renameTemplate,
     deleteTemplate,

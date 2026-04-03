@@ -13,6 +13,7 @@ export function use5x5Config() {
   const [configA, setConfigA] = useState<FiveByFiveConfigEntry[]>([])
   const [configB, setConfigB] = useState<FiveByFiveConfigEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { load() }, [])
 
@@ -51,14 +52,15 @@ export function use5x5Config() {
   }
 
   async function addExercise(label: 'A' | 'B', exerciseId: string, name: string) {
+    setError(null)
     const currentConfig = label === 'A' ? configA : configB
     const sortOrder = currentConfig.length
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('five_by_five_config')
       .insert({ workout_label: label, exercise_id: exerciseId, sort_order: sortOrder })
       .select('id')
       .single()
-    if (error) return
+    if (insertError) { setError(insertError.message); return }
 
     const newEntry: FiveByFiveConfigEntry = {
       id: data.id,
@@ -72,18 +74,22 @@ export function use5x5Config() {
   }
 
   async function removeExercise(configId: string, label: 'A' | 'B') {
-    await supabase.from('five_by_five_config').delete().eq('id', configId)
+    setError(null)
+    const { error } = await supabase.from('five_by_five_config').delete().eq('id', configId)
+    if (error) { setError(error.message); return }
     if (label === 'A') setConfigA((prev) => prev.filter((e) => e.id !== configId))
     else setConfigB((prev) => prev.filter((e) => e.id !== configId))
   }
 
   async function setWorkingWeight(exerciseId: string, weight: number | null) {
-    await supabase
+    setError(null)
+    const { error } = await supabase
       .from('working_weights')
       .upsert(
         { exercise_id: exerciseId, weight_lbs: weight, updated_at: new Date().toISOString() },
         { onConflict: 'exercise_id' }
       )
+    if (error) { setError(error.message); return }
     const update = (prev: FiveByFiveConfigEntry[]) =>
       prev.map((e) => e.exercise_id === exerciseId ? { ...e, working_weight: weight } : e)
     setConfigA(update)
@@ -91,6 +97,7 @@ export function use5x5Config() {
   }
 
   async function reorderExercise(label: 'A' | 'B', configId: string, direction: 'up' | 'down') {
+    setError(null)
     const config = label === 'A' ? configA : configB
     const idx = config.findIndex((e) => e.id === configId)
     if (idx === -1) return
@@ -100,10 +107,12 @@ export function use5x5Config() {
     const entry = config[idx]
     const swapEntry = config[swapIdx]
 
-    await Promise.all([
+    const [res1, res2] = await Promise.all([
       supabase.from('five_by_five_config').update({ sort_order: swapEntry.sort_order }).eq('id', entry.id),
       supabase.from('five_by_five_config').update({ sort_order: entry.sort_order }).eq('id', swapEntry.id),
     ])
+    if (res1.error) { setError(res1.error.message); return }
+    if (res2.error) { setError(res2.error.message); return }
 
     const updated = [...config]
     updated[idx] = { ...entry, sort_order: swapEntry.sort_order }
@@ -114,5 +123,5 @@ export function use5x5Config() {
     else setConfigB(updated)
   }
 
-  return { configA, configB, loading, addExercise, removeExercise, setWorkingWeight, reorderExercise }
+  return { configA, configB, loading, error, addExercise, removeExercise, setWorkingWeight, reorderExercise }
 }

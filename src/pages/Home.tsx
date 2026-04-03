@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useGoals } from '@/hooks/useGoals'
+import { formatDate, formatDuration, formatWorkoutType } from '@/lib/formatters'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -26,27 +27,6 @@ function getWorkoutRoute(type: string): string {
   if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
   if (type === 'five_by_five_b') return '/workout/5x5/active?label=B'
   return '/workout/active'
-}
-
-function formatWorkoutType(type: string): string {
-  switch (type) {
-    case 'five_by_five_a': return '5×5 Workout A'
-    case 'five_by_five_b': return '5×5 Workout B'
-    case 'freeform':       return 'Freeform'
-    case 'template':       return 'Template'
-    case 'stretch':        return 'Stretch'
-    default:               return type
-  }
-}
-
-function formatDate(ts: string): string {
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function formatDuration(started: string | null, completed: string | null): string | null {
-  if (!started || !completed) return null
-  const mins = Math.round((new Date(completed).getTime() - new Date(started).getTime()) / 60000)
-  return mins > 0 ? `${mins} min` : null
 }
 
 // ─── Components ────────────────────────────────────────────────────────────────

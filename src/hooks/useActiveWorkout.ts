@@ -224,7 +224,9 @@ export function useActiveWorkout(templateId?: string) {
   }
 
   async function removeExercise(workoutExerciseId: string) {
-    await supabase.from('workout_exercises').delete().eq('id', workoutExerciseId)
+    setError(null)
+    const { error } = await supabase.from('workout_exercises').delete().eq('id', workoutExerciseId)
+    if (error) { setError(error.message); return }
     setWorkoutExercises((prev) => {
       const filtered = prev.filter((ex) => ex.id !== workoutExerciseId)
       const reordered = filtered.map((ex, i) => ({ ...ex, sort_order: i }))

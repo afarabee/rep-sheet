@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource/teko/400.css";
 @import "@fontsource/teko/500.css";
@@ -105,47 +104,8 @@
     --sidebar-ring: #E91E8C;
 }
 
-.dark {
-    --background: #0F0A1A;
-    --foreground: #F0EAF4;
-    --card: #1A1028;
-    --card-foreground: #F0EAF4;
-    --popover: #1A1028;
-    --popover-foreground: #F0EAF4;
-    --primary: #E91E8C;
-    --primary-foreground: #ffffff;
-    --secondary: #241838;
-    --secondary-foreground: #9B8FB0;
-    --muted: #241838;
-    --muted-foreground: #5E5278;
-    --accent: #E91E8C;
-    --accent-foreground: #ffffff;
-    --destructive: #FF4D6A;
-    --border: #2A2040;
-    --input: #241838;
-    --ring: #E91E8C;
-    --neon: #E91E8C;
-    --neon-foreground: #ffffff;
-    --cyan: #00E5FF;
-    --mint: #7DFFC4;
-    --failed: #FF4D6A;
-    --chart-1: #E91E8C;
-    --chart-2: #00E5FF;
-    --chart-3: #7DFFC4;
-    --chart-4: #9B8FB0;
-    --chart-5: #5E5278;
-    --sidebar: #1A1028;
-    --sidebar-foreground: #F0EAF4;
-    --sidebar-primary: #E91E8C;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #241838;
-    --sidebar-accent-foreground: #9B8FB0;
-    --sidebar-border: #2A2040;
-    --sidebar-ring: #E91E8C;
-}
-
 @layer base {
-  * {
+  input, textarea, select, button {
     @apply border-border outline-ring/50;
   }
   body {

@@ -2,20 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Settings, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatTime } from '@/lib/formatters'
 import { use5x5Workout } from '@/hooks/use5x5Workout'
 import { useAbCircuit } from '@/hooks/useAbCircuit'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import { supabase } from '@/lib/supabase'
 import ExercisePicker from '@/components/workout/ExercisePicker'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatTime(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
+import NumericInput from '@/components/workout/NumericInput'
 
 // ─── Five Fixed Dots ──────────────────────────────────────────────────────────
 
@@ -35,46 +29,6 @@ function FiveByFiveDots({ logged }: { logged: number }) {
           {i < logged ? '✓' : i + 1}
         </div>
       ))}
-    </div>
-  )
-}
-
-// ─── NumericInput ─────────────────────────────────────────────────────────────
-
-function NumericInput({ label, value, onChange, step, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; step: number; placeholder?: string
-}) {
-  function adjust(delta: number) {
-    const current = parseFloat(value) || 0
-    const next = Math.max(0, current + delta)
-    onChange(step % 1 === 0 ? String(next) : next.toFixed(1))
-  }
-  return (
-    <div className="flex flex-col gap-2 shrink-0">
-      <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#9B8FB0]">{label}</label>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => adjust(-step)}
-          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
-        >
-          −
-        </button>
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-24 h-11 rounded-xl bg-background border-2 border-[#3D2E5C] text-foreground text-xl font-black text-center weight-number outline-none transition-colors focus:border-[#E91E8C]"
-          style={{ caretColor: '#E91E8C' }}
-          inputMode="decimal"
-        />
-        <button
-          onClick={() => adjust(step)}
-          className="w-10 h-11 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors active:scale-95"
-        >
-          +
-        </button>
-      </div>
     </div>
   )
 }

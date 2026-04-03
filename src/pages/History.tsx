@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Trash2, Search, LayoutTemplate, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+import { formatDate, formatDuration, formatWorkoutType } from '@/lib/formatters'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
@@ -19,28 +20,6 @@ const WORKOUT_TYPES = [
   { value: 'stretch', label: 'Stretch' },
 ]
 
-function formatWorkoutType(type: string): string {
-  switch (type) {
-    case 'freeform': return 'Freeform'
-    case 'five_by_five_a': return '5×5 A'
-    case 'five_by_five_b': return '5×5 B'
-    case 'template': return 'Template'
-    case 'stretch': return 'Stretch'
-    default: return type
-  }
-}
-
-function formatDate(ts: string | null): string {
-  if (!ts) return '—'
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function formatDuration(started: string | null, completed: string | null): string | null {
-  if (!started || !completed) return null
-  const mins = Math.round((new Date(completed).getTime() - new Date(started).getTime()) / 60000)
-  if (mins < 1) return null
-  return `${mins} min`
-}
 
 // ─── Left pane: workout list card ─────────────────────────────────────────────
 
@@ -83,8 +62,8 @@ function WorkoutCard({ workout, isSelected, onClick }: {
       </div>
 
       {/* Date */}
-      <div className="text-xs text-[#5E5278] mb-1">
-        {formatDate(workout.started_at)}
+      <div className="text-xs text-[#8B7FA6] mb-1">
+        {formatDate(workout.started_at, { withYear: true })}
       </div>
 
       {/* Meta row */}
@@ -156,7 +135,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
             backgroundClip: 'text',
           }}
         >
-          {formatDate(detail.started_at)}
+          {formatDate(detail.started_at, { withYear: true })}
         </h1>
         <div className="flex items-center gap-3 text-sm text-[#5E5278]">
           {detail.completed_at ? (
