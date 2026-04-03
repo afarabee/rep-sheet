@@ -37,6 +37,7 @@ export function useExercises() {
   const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>([])
   const [myEquipmentOnly, setMyEquipmentOnly] = useState(false)
   const [bodyweightOnly, setBodyweightOnly] = useState(false)
+  const [customOnly, setCustomOnly] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -79,6 +80,10 @@ export function useExercises() {
       result = result.filter((ex) => ex.muscle_group !== null && selectedMuscleGroups.includes(ex.muscle_group))
     }
 
+    if (customOnly) {
+      result = result.filter((ex) => ex.is_custom)
+    }
+
     if (selectedEquipmentTypes.length > 0) {
       result = result.filter((ex) => ex.equipment_type !== null && selectedEquipmentTypes.includes(ex.equipment_type))
     } else if (bodyweightOnly) {
@@ -95,7 +100,7 @@ export function useExercises() {
       if (a.is_favorite === b.is_favorite) return a.name.localeCompare(b.name)
       return a.is_favorite ? -1 : 1
     })
-  }, [exercises, searchQuery, selectedMuscleGroups, selectedEquipmentTypes, myEquipmentOnly, bodyweightOnly, ownedEquipmentTypes])
+  }, [exercises, searchQuery, selectedMuscleGroups, selectedEquipmentTypes, myEquipmentOnly, bodyweightOnly, customOnly, ownedEquipmentTypes])
 
   async function toggleFavorite(id: string, current: boolean) {
     // Optimistic update
@@ -206,6 +211,8 @@ export function useExercises() {
     setMyEquipmentOnly,
     bodyweightOnly,
     setBodyweightOnly,
+    customOnly,
+    setCustomOnly,
     toggleFavorite,
     addCustomExercise,
     updateExercise,

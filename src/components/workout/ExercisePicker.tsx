@@ -21,6 +21,8 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
     setMyEquipmentOnly,
     bodyweightOnly,
     setBodyweightOnly,
+    customOnly,
+    setCustomOnly,
     selectedMuscleGroups,
     setSelectedMuscleGroups,
     selectedEquipmentTypes,
@@ -124,6 +126,17 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
             )}
           >
             Bodyweight
+          </button>
+          <button
+            onClick={() => setCustomOnly((v) => !v)}
+            className={cn(
+              'shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all',
+              customOnly
+                ? 'border-[#9B8FB0] text-[#9B8FB0] bg-[#9B8FB0]/10'
+                : 'border-border text-[#5E5278] hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+            )}
+          >
+            Custom
           </button>
         </div>
       </div>

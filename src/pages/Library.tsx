@@ -180,6 +180,8 @@ export default function Library() {
     setMyEquipmentOnly,
     bodyweightOnly,
     setBodyweightOnly,
+    customOnly,
+    setCustomOnly,
     toggleFavorite,
     addCustomExercise,
     updateExercise,
@@ -263,6 +265,7 @@ export default function Library() {
     setSelectedMuscleGroups([])
     setSelectedEquipmentTypes([])
     setMyEquipmentOnly(false)
+    setCustomOnly(false)
   }
 
   const favorites = exercises.filter((ex) => ex.is_favorite)
@@ -523,6 +526,25 @@ export default function Library() {
                 {bodyweightOnly && <Check size={9} className="text-[#0F0A1A]" />}
               </span>
               Bodyweight
+            </button>
+            <button
+              onClick={() => setCustomOnly((v) => !v)}
+              className={cn(
+                'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150',
+                customOnly
+                  ? 'border-[#9B8FB0] text-[#9B8FB0] bg-[#9B8FB0]/10'
+                  : 'border-border text-[#5E5278] bg-card hover:border-[#3D2E5C] hover:text-[#9B8FB0]'
+              )}
+            >
+              <span
+                className={cn(
+                  'size-3.5 rounded-sm border flex items-center justify-center shrink-0',
+                  customOnly ? 'border-[#9B8FB0] bg-[#9B8FB0]' : 'border-[#5E5278]'
+                )}
+              >
+                {customOnly && <Check size={9} className="text-[#0F0A1A]" />}
+              </span>
+              Custom
             </button>
           </div>
 
