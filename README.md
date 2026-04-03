@@ -12,14 +12,24 @@ Live: **[repsheet.ai-with-aims.studio](https://repsheet.ai-with-aims.studio)**
 - 5×5 Strength Program — customizable A/B workout pairs with working weights, progressive overload suggestions, and rest timers
 - Freeform Workouts — log any exercise, any order, any rep scheme
 - Template Workouts — save and reuse workout structures
+- Stretch Sessions — quick-log mobility work with duration and notes
+- Three exercise modes: standard (weight + reps), timed (inline count-up timer), and count (for bands/bodyweight)
+- Visual "Count Mode" / "Timed Mode" badges on the log set card so you always know the active mode
 - Live workout indicator in the sidebar; pause/resume the session timer at any time
 - Navigate away mid-workout and resume without losing data
 
+**Calendar**
+- Month grid view with workout indicators per day
+- Day detail panel showing completed workouts
+- Schedule workouts for future dates
+
 **Exercise Library**
 - 2,500+ exercises from the open-source exercises.json dataset
-- Filter by muscle group, equipment, or favorites
-- "My gym only" filter (on by default) — shows only exercises matching your owned equipment
-- Add custom exercises
+- Filter by muscle group, equipment type, favorites, or custom exercises
+- Equipment type filter chips (Barbell, Dumbbell, Cable, etc.)
+- "My gym only" toggle — shows only exercises matching your owned equipment
+- Add custom exercises from the Library or inline from the exercise picker during template/workout config
+- Inline creation pre-fills the exercise name from your search term and auto-adds it to your template/workout on save
 
 **Body Composition**
 - Log entries from Fitdays screenshots, DEXA scans, Fitnescity reports, or manual entry
@@ -30,7 +40,7 @@ Live: **[repsheet.ai-with-aims.studio](https://repsheet.ai-with-aims.studio)**
 **Settings**
 - Equipment inventory — toggle what you own to power the exercise filter
 - Rest timer duration, 5×5 weight increments
-- Working weights per exercise
+- Working weights per exercise (auto-saved after each set)
 - Anthropic API key (for body comp AI parsing)
 - CSV data export
 
@@ -41,7 +51,7 @@ Live: **[repsheet.ai-with-aims.studio](https://repsheet.ai-with-aims.studio)**
 | Layer | Tech |
 |---|---|
 | Framework | React 19 + TypeScript |
-| Build | Vite 8 |
+| Build | Vite 8 (route-based lazy loading + vendor/charts chunk splitting) |
 | Styling | Tailwind CSS v4 |
 | Components | shadcn/ui + Lucide icons |
 | Backend | Supabase (Postgres + Edge Functions) |
@@ -153,6 +163,9 @@ Once deployed, open Settings in the app:
 - **No authentication** — single-user app, no `user_id` columns anywhere
 - **No global state** — each workout page manages its own state via custom hooks
 - **Workout resumption** — hooks check Supabase for an in-progress workout on mount before creating a new one
+- **Shared formatters** — `src/lib/formatters.ts` centralizes date, duration, workout type, and number formatting across all pages
+- **Shared NumericInput** — `src/components/workout/NumericInput.tsx` used by ActiveWorkout, FiveByFiveWorkout, and the inline exercise timer
+- **Route-based lazy loading** — pages load on demand via `React.lazy()` + `Suspense`, keeping the entry bundle at ~13KB
 - **Body comp parsing** — Supabase Edge Function reads the Anthropic API key from the `program_settings` table (set in app Settings), then calls Claude Haiku with source-specific prompts for Fitdays, DEXA, and Fitnescity formats
 
 ---
@@ -162,13 +175,14 @@ Once deployed, open Settings in the app:
 ```
 src/
   components/
-    layout/       # AppShell, SidebarNav
+    layout/       # AppShell, SidebarNav, BottomNav, MobileBackButton
     ui/           # shadcn primitives
-    workout/      # ExercisePicker
-  hooks/          # useActiveWorkout, use5x5Workout, useExercises, useBodyComp, etc.
-  pages/          # One file per route
+    workout/      # ExercisePicker (with inline create), NumericInput
+  hooks/          # useActiveWorkout, use5x5Workout, useExercises, useExerciseTimer, etc.
+  pages/          # One file per route (Home, Library, ActiveWorkout, Calendar, etc.)
   lib/
     supabase.ts   # Supabase client
+    formatters.ts # Shared date/time/workout formatting
 ```
 
 ---
