@@ -261,12 +261,14 @@ export default function Templates() {
       {/* ── Right Pane ── */}
       <div className={cn(
         'flex-1 overflow-hidden flex',
-        isMobile && !showDetail && !creating && !selected5x5 && 'hidden',
-        showPicker && !isMobile && 'lg:max-w-md'
+        isMobile && !showDetail && !creating && !selected5x5 && 'hidden'
       )}>
 
         {/* Detail / create area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 bg-radial-purple">
+        <div className={cn(
+          'overflow-y-auto p-4 lg:p-6 bg-radial-purple',
+          showPicker && !isMobile ? 'w-80 lg:w-96 shrink-0' : 'flex-1'
+        )}>
 
           {/* Mobile back button */}
           {isMobile && (showDetail || creating) && (
