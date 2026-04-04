@@ -7,6 +7,7 @@ import { formatDate, formatDuration, formatWorkoutType } from '@/lib/formatters'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 import type { WorkoutSummary, WorkoutDetail } from '@/hooks/useWorkoutHistory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -301,10 +302,9 @@ export default function History() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
-
-      {/* ── Left Pane: Workout List ── */}
+      <ResizableLayout id="history-layout" isMobile={isMobile} leftDefault={25} leftPanel={
       <div className={cn(
-        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
+        'w-full h-full border-r border-border bg-card flex flex-col',
         isMobile && showDetail && 'hidden'
       )}>
         <div className="px-5 py-4 border-b border-border shrink-0">
@@ -374,9 +374,9 @@ export default function History() {
         </div>
       </div>
 
-      {/* ── Right Pane: Detail ── */}
+      } rightPanel={
       <div className={cn(
-        'flex-1 overflow-y-auto p-4 lg:p-6 bg-radial-purple',
+        'h-full overflow-y-auto p-4 lg:p-6 bg-radial-purple',
         isMobile && !showDetail && 'hidden'
       )}>
         {isMobile && showDetail && (
@@ -398,6 +398,7 @@ export default function History() {
           <WorkoutDetailView detail={detail} onDelete={deleteWorkout} />
         )}
       </div>
+      } />
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { useCalendarData } from '@/hooks/useCalendarData'
 import { scheduleWorkout, removeScheduledWorkout } from '@/hooks/useScheduledWorkouts'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 import type { CalendarWorkout, ScheduledWorkout } from '@/hooks/useCalendarData'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -477,135 +478,141 @@ export default function Calendar() {
 
   return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
-      {/* ── Left Pane: Calendar Grid ── */}
-      <div className={cn(
-        'w-full md:w-[360px] md:shrink-0 border-r border-border bg-card flex flex-col',
-        isMobile && showDetail && 'hidden'
-      )}>
-        {/* Month header */}
-        <div className="px-4 py-4 border-b border-border shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <button
-              onClick={goToPrevMonth}
-              className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <span className="text-sm font-black uppercase tracking-wider text-foreground">
-              {MONTH_NAMES[viewMonth]} {viewYear}
-            </span>
-            <button
-              onClick={goToNextMonth}
-              className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-          {!isCurrentMonth && (
-            <button
-              onClick={goToToday}
-              className="w-full text-center text-[10px] font-bold uppercase tracking-wider text-[#E91E8C] hover:text-[#FF6EC7] transition-colors"
-            >
-              Today
-            </button>
-          )}
-        </div>
-
-        {/* Calendar grid */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
-          {/* Day headers */}
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {DAY_HEADERS.map((d, i) => (
-              <div key={i} className="text-center text-[10px] font-black uppercase tracking-wider text-[#5E5278] py-1">
-                {d}
+      <ResizableLayout
+        id="calendar-layout"
+        isMobile={isMobile}
+        leftDefault={50}
+        leftPanel={
+          <div className={cn(
+            'w-full border-r border-border bg-card flex flex-col h-full',
+            isMobile && showDetail && 'hidden'
+          )}>
+            {/* Month header */}
+            <div className="px-4 py-4 border-b border-border shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={goToPrevMonth}
+                  className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span className="text-sm font-black uppercase tracking-wider text-foreground">
+                  {MONTH_NAMES[viewMonth]} {viewYear}
+                </span>
+                <button
+                  onClick={goToNextMonth}
+                  className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
-            ))}
+              {!isCurrentMonth && (
+                <button
+                  onClick={goToToday}
+                  className="w-full text-center text-[10px] font-bold uppercase tracking-wider text-[#E91E8C] hover:text-[#FF6EC7] transition-colors"
+                >
+                  Today
+                </button>
+              )}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="flex-1 overflow-y-auto px-3 py-3">
+              {/* Day headers */}
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {DAY_HEADERS.map((d, i) => (
+                  <div key={i} className="text-center text-[10px] font-black uppercase tracking-wider text-[#5E5278] py-1">
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              {/* Day cells */}
+              {loading ? (
+                <div className="py-16 flex items-center justify-center">
+                  <p className="text-[#5E5278] text-sm">Loading…</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                    <div key={`empty-${i}`} />
+                  ))}
+
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1
+                    const dayOfWeek = new Date(viewYear, viewMonth, day).getDay()
+                    const dayWorkouts = getWorkoutsForDay(day)
+                    const dayScheduled = getScheduledForDay(day)
+                    const isToday = isCurrentMonth && day === todayDate
+
+                    return (
+                      <DayCell
+                        key={day}
+                        day={day}
+                        isToday={isToday}
+                        isSelected={selectedDay === day}
+                        isTrainingDay={isTrainingDay(dayOfWeek)}
+                        workouts={dayWorkouts}
+                        hasScheduled={dayScheduled.length > 0}
+                        onClick={() => { setSelectedDay(day); setShowDetail(true) }}
+                      />
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-3 mt-4 px-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#E91E8C]" />
+                  <span className="text-[10px] text-[#5E5278]">5×5</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#00E5FF]" />
+                  <span className="text-[10px] text-[#5E5278]">Freeform</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#7DFFC4]" />
+                  <span className="text-[10px] text-[#5E5278]">Stretch</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full border-2 border-[#FFD166]" />
+                  <span className="text-[10px] text-[#5E5278]">Scheduled</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded bg-[#241838]/50 border border-[#2A2040]" />
+                  <span className="text-[10px] text-[#5E5278]">Training day</span>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Day cells */}
-          {loading ? (
-            <div className="py-16 flex items-center justify-center">
-              <p className="text-[#5E5278] text-sm">Loading…</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} />
-              ))}
-
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1
-                const dayOfWeek = new Date(viewYear, viewMonth, day).getDay()
-                const dayWorkouts = getWorkoutsForDay(day)
-                const dayScheduled = getScheduledForDay(day)
-                const isToday = isCurrentMonth && day === todayDate
-
-                return (
-                  <DayCell
-                    key={day}
-                    day={day}
-                    isToday={isToday}
-                    isSelected={selectedDay === day}
-                    isTrainingDay={isTrainingDay(dayOfWeek)}
-                    workouts={dayWorkouts}
-                    hasScheduled={dayScheduled.length > 0}
-                    onClick={() => { setSelectedDay(day); setShowDetail(true) }}
-                  />
-                )
-              })}
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="flex flex-wrap items-center gap-3 mt-4 px-1">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#E91E8C]" />
-              <span className="text-[10px] text-[#5E5278]">5×5</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#00E5FF]" />
-              <span className="text-[10px] text-[#5E5278]">Freeform</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#7DFFC4]" />
-              <span className="text-[10px] text-[#5E5278]">Stretch</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full border-2 border-[#FFD166]" />
-              <span className="text-[10px] text-[#5E5278]">Scheduled</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-[#241838]/50 border border-[#2A2040]" />
-              <span className="text-[10px] text-[#5E5278]">Training day</span>
-            </div>
+        }
+        rightPanel={
+          <div className={cn(
+            'h-full overflow-y-auto p-4 md:p-6 bg-radial-purple',
+            isMobile && !showDetail && 'hidden'
+          )}>
+            {isMobile && showDetail && (
+              <MobileBackButton onBack={() => setShowDetail(false)} />
+            )}
+            {selectedDay ? (
+              <DayDetail
+                day={selectedDay}
+                month={viewMonth}
+                year={viewYear}
+                workouts={getWorkoutsForDay(selectedDay)}
+                scheduled={getScheduledForDay(selectedDay)}
+                isTrainingDay={isTrainingDay(new Date(viewYear, viewMonth, selectedDay).getDay())}
+                onScheduleChanged={reload}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-sm text-[#5E5278]">Select a day to see details.</p>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* ── Right Pane: Day Detail ── */}
-      <div className={cn(
-        'flex-1 overflow-y-auto p-4 md:p-6 bg-radial-purple',
-        isMobile && !showDetail && 'hidden'
-      )}>
-        {isMobile && showDetail && (
-          <MobileBackButton onBack={() => setShowDetail(false)} />
-        )}
-        {selectedDay ? (
-          <DayDetail
-            day={selectedDay}
-            month={viewMonth}
-            year={viewYear}
-            workouts={getWorkoutsForDay(selectedDay)}
-            scheduled={getScheduledForDay(selectedDay)}
-            isTrainingDay={isTrainingDay(new Date(viewYear, viewMonth, selectedDay).getDay())}
-            onScheduleChanged={reload}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center">
-            <p className="text-sm text-[#5E5278]">Select a day to see details.</p>
-          </div>
-        )}
-      </div>
+        }
+      />
     </div>
   )
 }

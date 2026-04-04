@@ -4,6 +4,7 @@ import { useSettings, type ProgramSettings } from '@/hooks/useSettings'
 import { useEquipment, EQUIPMENT_TYPES } from '@/hooks/useEquipment'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 import { loadNavOrder, saveNavOrder, resetNavOrder, defaultNavItems } from '@/lib/navOrder'
 import type { NavItem } from '@/lib/navOrder'
 import { Timer, TrendingUp, Dumbbell, Key, Download, Loader2, Package, X, Check, ChevronUp, ChevronDown, RotateCcw, PanelLeft } from 'lucide-react'
@@ -469,49 +470,55 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden">
-      {/* ── Left nav ── */}
-      <div className={cn(
-        'w-full lg:w-64 lg:shrink-0 flex flex-col border-r border-border h-full',
-        isMobile && showDetail && 'hidden'
-      )}>
-        <div className="px-4 pt-5 pb-4 shrink-0">
-          <h1
-            className="text-xl font-black tracking-tight"
-            style={{ color: '#E91E8C', textShadow: '0 0 12px rgba(233,30,140,0.5)' }}
-          >
-            Settings
-          </h1>
-        </div>
-        <nav className="flex-1 overflow-y-auto px-2">
-          {NAV.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              onClick={() => { setActiveSection(id); setShowDetail(true) }}
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 text-left transition-all duration-150 border-l-2',
-                activeSection === id
-                  ? 'bg-[#241838] border-[#E91E8C] text-foreground'
-                  : 'border-transparent text-[#5E5278] hover:bg-[#1A1028]/80 hover:text-[#9B8FB0]'
-              )}
-              style={activeSection === id ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
-            >
-              <Icon size={16} />
-              <span className="text-sm font-semibold">{label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* ── Right content ── */}
-      <div className={cn(
-        'flex-1 overflow-y-auto p-4 lg:p-6 max-w-xl',
-        isMobile && !showDetail && 'hidden'
-      )}>
-        {isMobile && showDetail && (
-          <MobileBackButton onBack={() => setShowDetail(false)} />
-        )}
-        {renderSection()}
-      </div>
+      <ResizableLayout
+        id="settings-layout"
+        isMobile={isMobile}
+        leftDefault={25}
+        leftPanel={
+          <div className={cn(
+            'w-full flex flex-col border-r border-border h-full',
+            isMobile && showDetail && 'hidden'
+          )}>
+            <div className="px-4 pt-5 pb-4 shrink-0">
+              <h1
+                className="text-xl font-black tracking-tight"
+                style={{ color: '#E91E8C', textShadow: '0 0 12px rgba(233,30,140,0.5)' }}
+              >
+                Settings
+              </h1>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-2">
+              {NAV.map(({ id, label, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => { setActiveSection(id); setShowDetail(true) }}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 text-left transition-all duration-150 border-l-2',
+                    activeSection === id
+                      ? 'bg-[#241838] border-[#E91E8C] text-foreground'
+                      : 'border-transparent text-[#5E5278] hover:bg-[#1A1028]/80 hover:text-[#9B8FB0]'
+                  )}
+                  style={activeSection === id ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
+                >
+                  <Icon size={16} />
+                  <span className="text-sm font-semibold">{label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        }
+        rightPanel={
+          <div className={cn(
+            'h-full overflow-y-auto p-4 lg:p-6 max-w-xl',
+            isMobile && !showDetail && 'hidden'
+          )}>
+            {isMobile && showDetail && (
+              <MobileBackButton onBack={() => setShowDetail(false)} />
+            )}
+            {renderSection()}
+          </div>
+        }
+      />
     </div>
   )
 }

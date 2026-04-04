@@ -7,6 +7,7 @@ import { use5x5Config } from '@/hooks/use5x5Config'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import MobileBackButton from '@/components/layout/MobileBackButton'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 
 interface DraftExercise {
   key: number           // local-only identity for list operations
@@ -164,13 +165,16 @@ export default function Templates() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
-
-      {/* ── Left Pane ── */}
-      <div className={cn(
-        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
-        (isMobile && (showDetail || creating || selected5x5)) && 'hidden',
-        !isMobile && showPicker && 'hidden'
-      )}>
+      <ResizableLayout
+        id="templates-layout"
+        isMobile={isMobile}
+        leftDefault={25}
+        leftPanel={
+          <div className={cn(
+            'w-full border-r border-border bg-card flex flex-col h-full',
+            (isMobile && (showDetail || creating || selected5x5)) && 'hidden',
+            !isMobile && showPicker && 'hidden'
+          )}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
             Templates
@@ -257,12 +261,12 @@ export default function Templates() {
           ))}
         </div>
       </div>
-
-      {/* ── Right Pane ── */}
-      <div className={cn(
-        'flex-1 overflow-hidden flex',
-        isMobile && !showDetail && !creating && !selected5x5 && 'hidden'
-      )}>
+        }
+        rightPanel={
+          <div className={cn(
+            'h-full overflow-hidden flex',
+            isMobile && !showDetail && !creating && !selected5x5 && 'hidden'
+          )}>
 
         {/* Detail / create area */}
         <div className={cn(
@@ -634,6 +638,8 @@ export default function Templates() {
           </div>
         )}
       </div>
+        }
+      />
     </div>
   )
 }

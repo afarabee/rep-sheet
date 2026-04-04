@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import NumericInput from '@/components/workout/NumericInput'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 
 // ─── Set Dot indicator ────────────────────────────────────────────────────────
 
@@ -118,139 +119,142 @@ export default function ActiveWorkout() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
+      <ResizableLayout
+        id="activeworkout-layout"
+        isMobile={isMobile}
+        leftDefault={25}
+        leftPanel={
+          <div className={cn(
+            'w-full border-r border-border bg-card flex flex-col h-full',
+            isMobile && !showExerciseList && 'hidden'
+          )}>
 
-      {/* ── Left Pane: Exercise List ── */}
-      <div className={cn(
-        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
-        isMobile && !showExerciseList && 'hidden'
-      )}>
-
-        {/* Workout header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-          <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
-            Freeform
-          </span>
-          <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
-            {formatTime(elapsedSeconds)}
-          </span>
-        </div>
-
-        {/* Exercise list */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          {workoutExercises.length === 0 && (
-            <div className="py-8 text-center">
-              <p className="text-xs text-[#5E5278]">No exercises yet</p>
+            {/* Workout header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
+                Freeform
+              </span>
+              <span className={cn('weight-number text-sm', status === 'active' && !isPaused ? 'text-[#00E5FF]' : status === 'active' && isPaused ? 'text-[#5E5278]' : 'text-[#3D2E5C]')}>
+                {formatTime(elapsedSeconds)}
+              </span>
             </div>
-          )}
 
-          {workoutExercises.map((ex, i) => {
-            const isActive = i === activeExerciseIndex
-            return (
-              <div
-                key={ex.id}
-                onClick={() => { setActiveExerciseIndex(i); setShowPicker(false); setShowExerciseList(false) }}
-                className={cn(
-                  'p-4 rounded-xl mb-1.5 cursor-pointer transition-all duration-150 relative group',
-                  isActive
-                    ? 'bg-[#241838] border-l-2 border-[#E91E8C]'
-                    : 'hover:bg-[#1A1028]/80 border-l-2 border-transparent'
-                )}
-                style={isActive ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
-              >
-                <div className={cn(
-                  'text-sm font-semibold pr-6 truncate',
-                  isActive ? 'text-foreground' : 'text-[#9B8FB0]'
-                )}>
-                  {ex.name}
+            {/* Exercise list */}
+            <div className="flex-1 overflow-y-auto px-3 py-2">
+              {workoutExercises.length === 0 && (
+                <div className="py-8 text-center">
+                  <p className="text-xs text-[#5E5278]">No exercises yet</p>
                 </div>
-                <SetDots count={ex.sets.length} />
+              )}
 
-                {/* Remove button */}
+              {workoutExercises.map((ex, i) => {
+                const isActive = i === activeExerciseIndex
+                return (
+                  <div
+                    key={ex.id}
+                    onClick={() => { setActiveExerciseIndex(i); setShowPicker(false); setShowExerciseList(false) }}
+                    className={cn(
+                      'p-4 rounded-xl mb-1.5 cursor-pointer transition-all duration-150 relative group',
+                      isActive
+                        ? 'bg-[#241838] border-l-2 border-[#E91E8C]'
+                        : 'hover:bg-[#1A1028]/80 border-l-2 border-transparent'
+                    )}
+                    style={isActive ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
+                  >
+                    <div className={cn(
+                      'text-sm font-semibold pr-6 truncate',
+                      isActive ? 'text-foreground' : 'text-[#9B8FB0]'
+                    )}>
+                      {ex.name}
+                    </div>
+                    <SetDots count={ex.sets.length} />
+
+                    {/* Remove button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeExercise(ex.id) }}
+                      className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
+                      aria-label="Remove exercise"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* Add exercise button */}
+              <button
+                onClick={() => setShowPicker(true)}
+                className="w-full py-3 rounded-xl border border-dashed border-[#3D2E5C] text-[#5E5278] text-sm font-semibold uppercase tracking-wider mt-1 transition-all hover:border-[#E91E8C] hover:text-[#E91E8C] hover:bg-[#E91E8C]/5"
+              >
+                + Add Exercise
+              </button>
+            </div>
+
+            {/* Start / End workout */}
+            <div className="px-3 py-3 border-t border-border shrink-0">
+              {status === 'planning' ? (
                 <button
-                  onClick={(e) => { e.stopPropagation(); removeExercise(ex.id) }}
-                  className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
-                  aria-label="Remove exercise"
+                  onClick={startWorkout}
+                  className="w-full py-3 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 active:scale-[0.98]"
                 >
-                  <X size={13} />
+                  Start Workout
                 </button>
-              </div>
-            )
-          })}
-
-          {/* Add exercise button */}
-          <button
-            onClick={() => setShowPicker(true)}
-            className="w-full py-3 rounded-xl border border-dashed border-[#3D2E5C] text-[#5E5278] text-sm font-semibold uppercase tracking-wider mt-1 transition-all hover:border-[#E91E8C] hover:text-[#E91E8C] hover:bg-[#E91E8C]/5"
-          >
-            + Add Exercise
-          </button>
-        </div>
-
-        {/* Start / End workout */}
-        <div className="px-3 py-3 border-t border-border shrink-0">
-          {status === 'planning' ? (
-            <button
-              onClick={startWorkout}
-              className="w-full py-3 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 active:scale-[0.98]"
-            >
-              Start Workout
-            </button>
-          ) : confirmEnd ? (
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleEndWorkout}
-                className="w-full py-3 rounded-xl bg-[#7DFFC4] text-[#0F0A1A] text-sm font-black uppercase tracking-wider transition-all hover:brightness-105"
-              >
-                Save & End
-              </button>
-              <button
-                onClick={async () => { await cancelWorkout() }}
-                className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
-              >
-                Discard Workout
-              </button>
-              <button
-                onClick={() => setConfirmEnd(false)}
-                className="w-full py-2 text-[#5E5278] text-xs font-bold uppercase tracking-wider hover:text-[#9B8FB0] transition-colors"
-              >
-                Keep Going
-              </button>
+              ) : confirmEnd ? (
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={handleEndWorkout}
+                    className="w-full py-3 rounded-xl bg-[#7DFFC4] text-[#0F0A1A] text-sm font-black uppercase tracking-wider transition-all hover:brightness-105"
+                  >
+                    Save & End
+                  </button>
+                  <button
+                    onClick={async () => { await cancelWorkout() }}
+                    className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
+                  >
+                    Discard Workout
+                  </button>
+                  <button
+                    onClick={() => setConfirmEnd(false)}
+                    className="w-full py-2 text-[#5E5278] text-xs font-bold uppercase tracking-wider hover:text-[#9B8FB0] transition-colors"
+                  >
+                    Keep Going
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {status === 'active' && (
+                    <button
+                      onClick={isPaused ? resumeWorkout : pauseWorkout}
+                      className="w-full py-3 rounded-xl border border-[#5E5278] text-[#9B8FB0] text-sm font-black uppercase tracking-wider transition-all hover:border-[#9B8FB0] hover:text-foreground flex items-center justify-center gap-2"
+                    >
+                      {isPaused ? <><Play size={14} /> Resume</> : <><Pause size={14} /> Pause</>}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setConfirmEnd(true)}
+                    className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
+                  >
+                    End Workout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        }
+        rightPanel={
+          showPicker ? (
+            <div className={cn('h-full overflow-hidden', isMobile && showExerciseList && 'hidden')}>
+              <ExercisePicker
+                onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => addExercise(exerciseId, name, equipmentType, isTimed, isCount)}
+                onClose={() => setShowPicker(false)}
+                alreadyAddedIds={alreadyAddedIds}
+              />
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {status === 'active' && (
-                <button
-                  onClick={isPaused ? resumeWorkout : pauseWorkout}
-                  className="w-full py-3 rounded-xl border border-[#5E5278] text-[#9B8FB0] text-sm font-black uppercase tracking-wider transition-all hover:border-[#9B8FB0] hover:text-foreground flex items-center justify-center gap-2"
-                >
-                  {isPaused ? <><Play size={14} /> Resume</> : <><Pause size={14} /> Pause</>}
-                </button>
-              )}
-              <button
-                onClick={() => setConfirmEnd(true)}
-                className="w-full py-3 rounded-xl border-2 border-[#FF4D6A] text-[#FF4D6A] text-sm font-black uppercase tracking-wider transition-all hover:bg-[#FF4D6A]/10"
-              >
-                End Workout
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Right Pane: Exercise Picker or Set Logging ── */}
-      {showPicker ? (
-        <div className={cn('flex-1 overflow-hidden', isMobile && showExerciseList && 'hidden')}>
-          <ExercisePicker
-            onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => addExercise(exerciseId, name, equipmentType, isTimed, isCount)}
-            onClose={() => setShowPicker(false)}
-            alreadyAddedIds={alreadyAddedIds}
-          />
-        </div>
-      ) : (
-        <div className={cn(
-          'flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
-          isMobile && showExerciseList && 'hidden'
-        )}>
+            <div className={cn(
+              'h-full overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
+              isMobile && showExerciseList && 'hidden'
+            )}>
 
           {/* Empty state */}
           {workoutExercises.length === 0 && (
@@ -515,7 +519,9 @@ export default function ActiveWorkout() {
             </div>
           )}
         </div>
-      )}
+      )
+        }
+      />
     </div>
   )
 }

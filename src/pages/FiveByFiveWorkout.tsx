@@ -10,6 +10,7 @@ import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import { supabase } from '@/lib/supabase'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import NumericInput from '@/components/workout/NumericInput'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 
 // ─── Five Fixed Dots ──────────────────────────────────────────────────────────
 
@@ -168,12 +169,15 @@ export default function FiveByFiveWorkout() {
 
   return (
     <div className="h-full flex flex-col lg:flex-row overflow-hidden">
-
-      {/* ── Left Pane ── */}
-      <div className={cn(
-        'w-full lg:w-80 lg:shrink-0 border-r border-border bg-card flex flex-col',
-        isMobile && !showExerciseList && 'hidden'
-      )}>
+      <ResizableLayout
+        id="fivebyfive-layout"
+        isMobile={isMobile}
+        leftDefault={25}
+        leftPanel={
+          <div className={cn(
+            'w-full border-r border-border bg-card flex flex-col h-full',
+            isMobile && !showExerciseList && 'hidden'
+          )}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -319,21 +323,21 @@ export default function FiveByFiveWorkout() {
           )}
         </div>
       </div>
-
-      {/* ── Right Pane ── */}
-      {showPicker ? (
-        <div className={cn('flex-1 overflow-hidden', isMobile && showExerciseList && 'hidden')}>
-          <ExercisePicker
-            onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => addExercise(exerciseId, name, equipmentType, isTimed, isCount)}
-            onClose={() => setShowPicker(false)}
-            alreadyAddedIds={alreadyAddedIds}
-          />
-        </div>
-      ) : (
-        <div className={cn(
-          'flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
-          isMobile && showExerciseList && 'hidden'
-        )}>
+        }
+        rightPanel={
+          showPicker ? (
+            <div className={cn('h-full overflow-hidden', isMobile && showExerciseList && 'hidden')}>
+              <ExercisePicker
+                onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => addExercise(exerciseId, name, equipmentType, isTimed, isCount)}
+                onClose={() => setShowPicker(false)}
+                alreadyAddedIds={alreadyAddedIds}
+              />
+            </div>
+          ) : (
+            <div className={cn(
+              'h-full overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
+              isMobile && showExerciseList && 'hidden'
+            )}>
 
           {/* Mobile: switch exercise button */}
           {isMobile && status === 'active' && activeExercise && (
@@ -759,7 +763,9 @@ export default function FiveByFiveWorkout() {
             </div>
           )}
         </div>
-      )}
+      )
+        }
+      />
     </div>
   )
 }

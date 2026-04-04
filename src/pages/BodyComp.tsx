@@ -6,6 +6,7 @@ import { useBodyComp, type BodyCompEntry } from '@/hooks/useBodyComp'
 import { useBodyMeasurements, type MeasurementSession } from '@/hooks/useBodyMeasurements'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import MobileBackButton from '@/components/layout/MobileBackButton'
+import ResizableLayout from '@/components/layout/ResizableLayout'
 import { Trash2, Loader2, Key, Camera, ScanLine, Activity, PenLine, Ruler } from 'lucide-react'
 
 function sourceLabel(source: string | null): string {
@@ -621,95 +622,101 @@ export default function BodyComp() {
         onChange={handleFileSelected}
       />
 
-      {/* ── Left pane ── */}
-      <div className={cn(
-        'w-full lg:w-80 lg:shrink-0 flex flex-col border-r border-border h-full overflow-hidden',
-        isMobile && rightPane !== 'idle' && 'hidden'
-      )}>
+      <ResizableLayout
+        id="bodycomp-layout"
+        isMobile={isMobile}
+        leftDefault={30}
+        leftPanel={
+          <div className={cn(
+            'w-full flex flex-col border-r border-border h-full overflow-hidden',
+            isMobile && rightPane !== 'idle' && 'hidden'
+          )}>
 
-        {/* Body Comp section */}
-        <div className="px-4 pt-5 pb-3 flex items-center justify-between shrink-0">
-          <h1
-            className="text-[11px] font-black uppercase tracking-[0.2em]"
-            style={{ color: '#E91E8C', textShadow: '0 0 12px rgba(233,30,140,0.5)' }}
-          >
-            Body Comp
-          </h1>
-          <button
-            onClick={openMethodPicker}
-            className="text-xs font-bold text-[#E91E8C] hover:text-[#C4176F] transition-colors"
-          >
-            + Log
-          </button>
-        </div>
+            {/* Body Comp section */}
+            <div className="px-4 pt-5 pb-3 flex items-center justify-between shrink-0">
+              <h1
+                className="text-[11px] font-black uppercase tracking-[0.2em]"
+                style={{ color: '#E91E8C', textShadow: '0 0 12px rgba(233,30,140,0.5)' }}
+              >
+                Body Comp
+              </h1>
+              <button
+                onClick={openMethodPicker}
+                className="text-xs font-bold text-[#E91E8C] hover:text-[#C4176F] transition-colors"
+              >
+                + Log
+              </button>
+            </div>
 
-        <div className="flex-1 overflow-y-auto px-2 min-h-0">
-          {entries.length === 0 ? (
-            <p className="text-xs text-[#5E5278] text-center mt-4">No entries yet.</p>
-          ) : (
-            entries.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                entry={entry}
-                isSelected={selectedId === entry.id && rightPane === 'idle'}
-                onClick={() => {
-                  setSelectedId(entry.id)
-                  setSelectedSessionDate(null)
-                  setRightPane('idle')
-                  setDraft({})
-                  setLogSource(null)
-                }}
-              />
-            ))
-          )}
-        </div>
+            <div className="flex-1 overflow-y-auto px-2 min-h-0">
+              {entries.length === 0 ? (
+                <p className="text-xs text-[#5E5278] text-center mt-4">No entries yet.</p>
+              ) : (
+                entries.map((entry) => (
+                  <EntryCard
+                    key={entry.id}
+                    entry={entry}
+                    isSelected={selectedId === entry.id && rightPane === 'idle'}
+                    onClick={() => {
+                      setSelectedId(entry.id)
+                      setSelectedSessionDate(null)
+                      setRightPane('idle')
+                      setDraft({})
+                      setLogSource(null)
+                    }}
+                  />
+                ))
+              )}
+            </div>
 
-        {/* Divider */}
-        <div className="mx-4 border-t border-border shrink-0" />
+            {/* Divider */}
+            <div className="mx-4 border-t border-border shrink-0" />
 
-        {/* Measurements section */}
-        <div className="px-4 pt-3 pb-2 flex items-center justify-between shrink-0">
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#7DFFC4]">
-            Measurements
-          </span>
-          <button
-            onClick={openMeasurementsForm}
-            className="text-xs font-bold text-[#7DFFC4] hover:brightness-110 transition-all"
-          >
-            + Log
-          </button>
-        </div>
+            {/* Measurements section */}
+            <div className="px-4 pt-3 pb-2 flex items-center justify-between shrink-0">
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#7DFFC4]">
+                Measurements
+              </span>
+              <button
+                onClick={openMeasurementsForm}
+                className="text-xs font-bold text-[#7DFFC4] hover:brightness-110 transition-all"
+              >
+                + Log
+              </button>
+            </div>
 
-        <div className="overflow-y-auto px-2 pb-3 min-h-0" style={{ maxHeight: '40%' }}>
-          {sessions.length === 0 ? (
-            <p className="text-xs text-[#5E5278] text-center mt-2 mb-3">No measurements yet.</p>
-          ) : (
-            sessions.map((session) => (
-              <SessionCard
-                key={session.date}
-                session={session}
-                isSelected={selectedSessionDate === session.date && rightPane === 'measurements_detail'}
-                onClick={() => {
-                  setSelectedSessionDate(session.date)
-                  setSelectedId(null)
-                  setRightPane('measurements_detail')
-                }}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* ── Right pane ── */}
-      <div className={cn(
-        'flex-1 overflow-y-auto p-4 lg:p-6',
-        isMobile && rightPane === 'idle' && 'hidden'
-      )}>
-        {isMobile && rightPane !== 'idle' && (
-          <MobileBackButton onBack={() => setRightPane('idle')} />
-        )}
-        {renderRight()}
-      </div>
+            <div className="overflow-y-auto px-2 pb-3 min-h-0" style={{ maxHeight: '40%' }}>
+              {sessions.length === 0 ? (
+                <p className="text-xs text-[#5E5278] text-center mt-2 mb-3">No measurements yet.</p>
+              ) : (
+                sessions.map((session) => (
+                  <SessionCard
+                    key={session.date}
+                    session={session}
+                    isSelected={selectedSessionDate === session.date && rightPane === 'measurements_detail'}
+                    onClick={() => {
+                      setSelectedSessionDate(session.date)
+                      setSelectedId(null)
+                      setRightPane('measurements_detail')
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        }
+        rightPanel={
+          <div className={cn(
+            'h-full overflow-y-auto p-4 lg:p-6',
+            isMobile && rightPane === 'idle' && 'hidden'
+          )}>
+            {isMobile && rightPane !== 'idle' && (
+              <MobileBackButton onBack={() => setRightPane('idle')} />
+            )}
+            {renderRight()}
+          </div>
+        }
+      />
     </div>
   )
 }
