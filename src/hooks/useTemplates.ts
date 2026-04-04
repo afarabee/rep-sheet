@@ -7,6 +7,8 @@ export interface WorkoutTemplate {
   notes: string | null
   created_at: string
   exercise_count: number
+  is_favorite: boolean
+  is_active: boolean
 }
 
 export interface TemplateExercise {
@@ -51,7 +53,7 @@ export function useTemplates() {
     setLoading(true)
     const { data } = await supabase
       .from('workout_templates')
-      .select('id, name, notes, created_at, workout_template_exercises(count)')
+      .select('id, name, notes, created_at, is_favorite, is_active, workout_template_exercises(count)')
       .order('created_at', { ascending: false })
 
     setTemplates(
@@ -60,6 +62,8 @@ export function useTemplates() {
         name: t.name,
         notes: t.notes,
         created_at: t.created_at,
+        is_favorite: (t as Record<string, unknown>).is_favorite as boolean ?? false,
+        is_active: (t as Record<string, unknown>).is_active as boolean ?? true,
         exercise_count: Array.isArray(t.workout_template_exercises)
           ? (t.workout_template_exercises[0] as { count: number } | undefined)?.count ?? 0
           : 0,
@@ -136,6 +140,8 @@ export function useTemplates() {
       notes: null,
       created_at: new Date().toISOString(),
       exercise_count: exercises.length,
+      is_favorite: false,
+      is_active: true,
     }
     setTemplates((prev) => [newTemplate, ...prev])
     return templateId
@@ -250,6 +256,34 @@ export function useTemplates() {
     setDetail((prev) => prev ? { ...prev, exercises: updated } : prev)
   }
 
+  async function toggleFavorite(id: string) {
+    const current = templates.find((t) => t.id === id)
+    if (!current) return
+    const newVal = !current.is_favorite
+    setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, is_favorite: newVal } : t))
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ is_favorite: newVal, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) {
+      setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, is_favorite: !newVal } : t))
+    }
+  }
+
+  async function toggleActive(id: string) {
+    const current = templates.find((t) => t.id === id)
+    if (!current) return
+    const newVal = !current.is_active
+    setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, is_active: newVal } : t))
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ is_active: newVal, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) {
+      setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, is_active: !newVal } : t))
+    }
+  }
+
   return {
     templates,
     loading,
@@ -267,5 +301,7 @@ export function useTemplates() {
     removeExercise,
     updatePrescription,
     reorderExercise,
+    toggleFavorite,
+    toggleActive,
   }
 }

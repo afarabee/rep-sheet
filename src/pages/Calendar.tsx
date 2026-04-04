@@ -141,6 +141,7 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
       const { data } = await supabase
         .from('workout_templates')
         .select('id, name')
+        .eq('is_active', true)
         .order('name', { ascending: true })
       setTemplates((data ?? []).map((t) => ({ id: t.id, name: t.name })))
     }

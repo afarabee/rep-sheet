@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronUp, ChevronDown, X, Trash2 } from 'lucide-react'
+import { ChevronUp, ChevronDown, X, Trash2, Star, EyeOff, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTemplates } from '@/hooks/useTemplates'
 import { use5x5Config } from '@/hooks/use5x5Config'
@@ -22,13 +22,16 @@ interface DraftExercise {
 // ─── Left pane: template list card ────────────────────────────────────────────
 
 function TemplateCard({
-  name, exerciseCount, isSelected, onClick, onDelete,
+  name, exerciseCount, isSelected, isFavorite, isActive, onClick, onDelete, onToggleFavorite,
 }: {
   name: string
   exerciseCount: number
   isSelected: boolean
+  isFavorite: boolean
+  isActive: boolean
   onClick: () => void
   onDelete: () => void
+  onToggleFavorite: () => void
 }) {
   const [confirming, setConfirming] = useState(false)
 
@@ -37,6 +40,7 @@ function TemplateCard({
       onClick={onClick}
       className={cn(
         'p-4 rounded-xl mb-1.5 cursor-pointer transition-all duration-150 border-l-2 group relative',
+        !isActive && 'opacity-45',
         isSelected
           ? 'bg-[#241838] border-[#E91E8C]'
           : 'border-transparent hover:bg-[#1A1028]/80'
@@ -61,10 +65,21 @@ function TemplateCard({
         </div>
       ) : (
         <>
-          <div className={cn('text-sm font-bold pr-6 truncate', isSelected ? 'text-foreground' : 'text-[#9B8FB0]')}>
-            {name}
+          <div className="flex items-center gap-1.5 pr-12">
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite() }}
+              className={cn(
+                'p-0.5 shrink-0 transition-colors',
+                isFavorite ? 'text-[#FFD700]' : 'text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FFD700]'
+              )}
+            >
+              <Star size={13} fill={isFavorite ? 'currentColor' : 'none'} />
+            </button>
+            <div className={cn('text-sm font-bold truncate', isSelected ? 'text-foreground' : 'text-[#9B8FB0]')}>
+              {name}
+            </div>
           </div>
-          <div className="text-[11px] text-[#5E5278] mt-0.5">
+          <div className="text-[11px] text-[#5E5278] mt-0.5 pl-6">
             {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
           </div>
           <button
@@ -111,6 +126,8 @@ export default function Templates() {
     removeExercise,
     updatePrescription,
     reorderExercise,
+    toggleFavorite,
+    toggleActive,
   } = useTemplates()
 
   const {
@@ -272,14 +289,21 @@ export default function Templates() {
             </div>
           )}
 
-          {!loading && templates.map((t) => (
+          {!loading && [...templates].sort((a, b) => {
+            if (a.is_favorite !== b.is_favorite) return a.is_favorite ? -1 : 1
+            if (a.is_active !== b.is_active) return a.is_active ? -1 : 1
+            return 0
+          }).map((t) => (
             <TemplateCard
               key={t.id}
               name={t.name}
               exerciseCount={t.exercise_count}
               isSelected={t.id === selectedId && !selected5x5}
+              isFavorite={t.is_favorite}
+              isActive={t.is_active}
               onClick={() => { setSelectedId(t.id); setSelected5x5(null); setCreating(false); setShowPicker(false); setShowDetail(true) }}
               onDelete={() => deleteTemplate(t.id)}
+              onToggleFavorite={() => toggleFavorite(t.id)}
             />
           ))}
         </div>
@@ -575,6 +599,40 @@ export default function Templates() {
                       Start Workout
                     </button>
                   </div>
+
+                  {/* Favorite & Active toggles */}
+                  {(() => {
+                    const t = templates.find((t) => t.id === detail.id)
+                    if (!t) return null
+                    return (
+                      <div className="flex items-center gap-3 mb-5">
+                        <button
+                          onClick={() => toggleFavorite(detail.id)}
+                          className={cn(
+                            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                            t.is_favorite
+                              ? 'bg-[#FFD700]/15 text-[#FFD700]'
+                              : 'border border-[#3D2E5C] text-[#5E5278] hover:text-[#FFD700] hover:border-[#FFD700]/50'
+                          )}
+                        >
+                          <Star size={12} fill={t.is_favorite ? 'currentColor' : 'none'} />
+                          {t.is_favorite ? 'Favorited' : 'Favorite'}
+                        </button>
+                        <button
+                          onClick={() => toggleActive(detail.id)}
+                          className={cn(
+                            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                            t.is_active
+                              ? 'border border-[#3D2E5C] text-[#5E5278] hover:text-[#9B8FB0]'
+                              : 'bg-[#FF4D6A]/10 text-[#FF4D6A]'
+                          )}
+                        >
+                          {t.is_active ? <EyeOff size={12} /> : <Eye size={12} />}
+                          {t.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </div>
+                    )
+                  })()}
 
                   {detail.exercises.length === 0 && (
                     <div className="py-10 text-center border border-dashed border-[#3D2E5C] rounded-2xl mb-4">
