@@ -30,6 +30,8 @@ function TemplateCard({
   onClick: () => void
   onDelete: () => void
 }) {
+  const [confirming, setConfirming] = useState(false)
+
   return (
     <div
       onClick={onClick}
@@ -41,18 +43,38 @@ function TemplateCard({
       )}
       style={isSelected ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
     >
-      <div className={cn('text-sm font-bold pr-6 truncate', isSelected ? 'text-foreground' : 'text-[#9B8FB0]')}>
-        {name}
-      </div>
-      <div className="text-[11px] text-[#5E5278] mt-0.5">
-        {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
-      </div>
-      <button
-        onClick={(e) => { e.stopPropagation(); onDelete() }}
-        className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
-      >
-        <Trash2 size={13} />
-      </button>
+      {confirming ? (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#FF4D6A] font-semibold">Delete?</span>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            className="px-2 py-1 rounded-lg bg-[#FF4D6A]/20 text-[#FF4D6A] text-[10px] font-bold uppercase tracking-wider hover:bg-[#FF4D6A]/30 transition-all"
+          >
+            Yes
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirming(false) }}
+            className="px-2 py-1 rounded-lg border border-[#3D2E5C] text-[#9B8FB0] text-[10px] font-bold uppercase tracking-wider hover:text-foreground transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className={cn('text-sm font-bold pr-6 truncate', isSelected ? 'text-foreground' : 'text-[#9B8FB0]')}>
+            {name}
+          </div>
+          <div className="text-[11px] text-[#5E5278] mt-0.5">
+            {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirming(true) }}
+            className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
+          >
+            <Trash2 size={13} />
+          </button>
+        </>
+      )}
     </div>
   )
 }
@@ -71,6 +93,7 @@ export default function Templates() {
   const [draftKey, setDraftKey] = useState(0)  // incrementing key for list identity
 
   const [selected5x5, setSelected5x5] = useState<'A' | 'B' | null>(null)
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | number | null>(null)
 
   const {
     templates,
@@ -363,12 +386,29 @@ export default function Templates() {
                     <div className="shrink-0 text-[11px] font-bold text-[#00E5FF]">
                       5 × 5
                     </div>
-                    <button
-                      onClick={() => remove5x5Exercise(ex.id, selected5x5)}
-                      className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
-                    >
-                      <X size={14} />
-                    </button>
+                    {confirmRemoveId === `5x5-${ex.id}` ? (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => { remove5x5Exercise(ex.id, selected5x5); setConfirmRemoveId(null) }}
+                          className="px-2 py-1 rounded-lg bg-[#FF4D6A]/20 text-[#FF4D6A] text-[10px] font-bold uppercase tracking-wider hover:bg-[#FF4D6A]/30 transition-all"
+                        >
+                          Remove
+                        </button>
+                        <button
+                          onClick={() => setConfirmRemoveId(null)}
+                          className="px-2 py-1 rounded-lg border border-[#3D2E5C] text-[#9B8FB0] text-[10px] font-bold uppercase tracking-wider hover:text-foreground transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmRemoveId(`5x5-${ex.id}`)}
+                        className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -597,12 +637,29 @@ export default function Templates() {
                           />
                           <span>{ex.is_count ? 'count' : ex.is_timed ? 'sec' : 'reps'}</span>
                         </div>
-                        <button
-                          onClick={() => removeExercise(ex.id)}
-                          className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
-                        >
-                          <X size={14} />
-                        </button>
+                        {confirmRemoveId === ex.id ? (
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => { removeExercise(ex.id); setConfirmRemoveId(null) }}
+                              className="px-2 py-1 rounded-lg bg-[#FF4D6A]/20 text-[#FF4D6A] text-[10px] font-bold uppercase tracking-wider hover:bg-[#FF4D6A]/30 transition-all"
+                            >
+                              Remove
+                            </button>
+                            <button
+                              onClick={() => setConfirmRemoveId(null)}
+                              className="px-2 py-1 rounded-lg border border-[#3D2E5C] text-[#9B8FB0] text-[10px] font-bold uppercase tracking-wider hover:text-foreground transition-all"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmRemoveId(ex.id)}
+                            className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -65,6 +65,7 @@ export default function ActiveWorkout() {
   const [showPicker, setShowPicker] = useState(false)
   const [showExerciseList, setShowExerciseList] = useState(false)
   const [confirmEnd, setConfirmEnd] = useState(false)
+  const [confirmRemoveExId, setConfirmRemoveExId] = useState<string | null>(null)
   const [weightInput, setWeightInput] = useState('')
   const [repsInput, setRepsInput] = useState('')
   const [notes, setNotes] = useState('')
@@ -170,13 +171,30 @@ export default function ActiveWorkout() {
                     <SetDots count={ex.sets.length} />
 
                     {/* Remove button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeExercise(ex.id) }}
-                      className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
-                      aria-label="Remove exercise"
-                    >
-                      <X size={13} />
-                    </button>
+                    {confirmRemoveExId === ex.id ? (
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeExercise(ex.id); setConfirmRemoveExId(null) }}
+                          className="px-2 py-1 rounded-lg bg-[#FF4D6A]/20 text-[#FF4D6A] text-[10px] font-bold uppercase tracking-wider hover:bg-[#FF4D6A]/30 transition-all"
+                        >
+                          Remove
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setConfirmRemoveExId(null) }}
+                          className="px-2 py-1 rounded-lg border border-[#3D2E5C] text-[#9B8FB0] text-[10px] font-bold uppercase tracking-wider hover:text-foreground transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmRemoveExId(ex.id) }}
+                        className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
+                        aria-label="Remove exercise"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
                   </div>
                 )
               })}

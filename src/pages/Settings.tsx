@@ -330,6 +330,7 @@ function EquipmentSection() {
   const { equipment, loading, toggleOwned, addCustom, deleteCustom } = useEquipment()
   const [newName, setNewName] = useState('')
   const [newType, setNewType] = useState('other')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   if (loading) return <p className="text-sm text-[#5E5278]">Loading…</p>
 
@@ -395,12 +396,29 @@ function EquipmentSection() {
                 </div>
                 <span className="text-sm font-medium">{item.name}</span>
               </button>
-              <button
-                onClick={() => deleteCustom(item.id)}
-                className="p-2 text-[#5E5278] hover:text-[#FF4D6A] transition-colors"
-              >
-                <X size={14} />
-              </button>
+              {confirmDeleteId === item.id ? (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => { deleteCustom(item.id); setConfirmDeleteId(null) }}
+                    className="px-2 py-1 rounded-lg bg-[#FF4D6A]/20 text-[#FF4D6A] text-[10px] font-bold uppercase tracking-wider hover:bg-[#FF4D6A]/30 transition-all"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="px-2 py-1 rounded-lg border border-[#3D2E5C] text-[#9B8FB0] text-[10px] font-bold uppercase tracking-wider hover:text-foreground transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDeleteId(item.id)}
+                  className="p-2 text-[#5E5278] hover:text-[#FF4D6A] transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
           ))}
         </div>
