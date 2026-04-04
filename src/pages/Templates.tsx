@@ -261,7 +261,8 @@ export default function Templates() {
       {/* ── Right Pane ── */}
       <div className={cn(
         'flex-1 overflow-hidden flex',
-        isMobile && !showDetail && !creating && !selected5x5 && 'hidden'
+        isMobile && !showDetail && !creating && !selected5x5 && 'hidden',
+        showPicker && !isMobile && 'lg:max-w-md'
       )}>
 
         {/* Detail / create area */}
@@ -614,7 +615,7 @@ export default function Templates() {
 
         {/* Exercise picker panel */}
         {showPicker && (creating || detail || selected5x5) && (
-          <div className="w-full lg:w-96 lg:shrink-0 border-l border-border overflow-hidden">
+          <div className="w-full lg:flex-1 border-l border-border overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => {
                 if (creating) {
