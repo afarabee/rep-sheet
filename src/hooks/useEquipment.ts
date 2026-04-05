@@ -10,17 +10,17 @@ export interface EquipmentItem {
 }
 
 export const EQUIPMENT_TYPES = [
-  { value: 'barbell',        label: 'Barbell'         },
-  { value: 'dumbbell',       label: 'Dumbbell'        },
-  { value: 'cable',          label: 'Cable'           },
-  { value: 'machine',        label: 'Machine'         },
-  { value: 'kettlebell',     label: 'Kettlebell'      },
   { value: 'bands',          label: 'Resistance Bands'},
-  { value: 'ez_bar',         label: 'EZ Bar'          },
-  { value: 'exercise_ball',  label: 'Exercise Ball'   },
-  { value: 'medicine_ball',  label: 'Medicine Ball'   },
-  { value: 'foam_roller',    label: 'Foam Roller'     },
+  { value: 'barbell',        label: 'Barbell'         },
   { value: 'bodyweight',     label: 'Bodyweight'      },
+  { value: 'cable',          label: 'Cable'           },
+  { value: 'dumbbell',       label: 'Dumbbell'        },
+  { value: 'exercise_ball',  label: 'Exercise Ball'   },
+  { value: 'ez_bar',         label: 'EZ Bar'          },
+  { value: 'foam_roller',    label: 'Foam Roller'     },
+  { value: 'kettlebell',     label: 'Kettlebell'      },
+  { value: 'machine',        label: 'Machine'         },
+  { value: 'medicine_ball',  label: 'Medicine Ball'   },
   { value: 'other',          label: 'Other'           },
 ]
 

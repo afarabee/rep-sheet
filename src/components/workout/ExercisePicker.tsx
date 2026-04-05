@@ -7,16 +7,15 @@ import { useExercises } from '@/hooks/useExercises'
 import type { NewExercise } from '@/hooks/useExercises'
 
 const MUSCLE_GROUPS = [
-  'chest', 'lats', 'middle back', 'lower back', 'shoulders', 'traps',
-  'biceps', 'triceps', 'forearms',
-  'quadriceps', 'hamstrings', 'glutes', 'calves', 'abductors', 'adductors',
-  'abdominals', 'neck', 'mobility',
+  'abdominals', 'abductors', 'adductors', 'biceps', 'calves', 'chest',
+  'forearms', 'glutes', 'hamstrings', 'lats', 'lower back', 'middle back',
+  'mobility', 'neck', 'quadriceps', 'shoulders', 'traps', 'triceps',
 ]
 
 const EQUIPMENT_TYPES = [
-  'barbell', 'dumbbell', 'bodyweight', 'cable', 'machine',
-  'kettlebell', 'bands', 'ez_bar', 'exercise_ball',
-  'medicine_ball', 'foam_roller', 'other',
+  'bands', 'barbell', 'bodyweight', 'cable', 'dumbbell',
+  'exercise_ball', 'ez_bar', 'foam_roller', 'kettlebell',
+  'machine', 'medicine_ball', 'other',
 ]
 
 function formatLabel(s: string): string {

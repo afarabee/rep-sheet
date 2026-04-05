@@ -64,7 +64,7 @@ export function useSettings() {
         exercise_id: w.exercise_id,
         name: w.exercises?.name ?? 'Unknown',
         weight_lbs: w.weight_lbs,
-      }))
+      })).sort((a, b) => a.name.localeCompare(b.name))
       setWorkingWeights(weights)
       setLoading(false)
     }

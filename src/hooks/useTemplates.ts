@@ -52,7 +52,7 @@ export function useTemplates() {
     const { data } = await supabase
       .from('workout_templates')
       .select('id, name, notes, created_at, workout_template_exercises(count)')
-      .order('created_at', { ascending: false })
+      .order('name', { ascending: true })
 
     setTemplates(
       (data ?? []).map((t) => ({
