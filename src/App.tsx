@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 const Home = lazy(() => import('@/pages/Home'))
 const History = lazy(() => import('@/pages/History'))
@@ -26,25 +27,27 @@ function PageLoader() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route element={<AppShell />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/body-comp" element={<BodyComp />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/workout/active" element={<ActiveWorkout />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/workout/5x5/setup" element={<FiveByFiveSetup />} />
-            <Route path="/workout/5x5/active" element={<FiveByFiveWorkout />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route element={<AppShell />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/body-comp" element={<BodyComp />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/goals" element={<Goals />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/workout/active" element={<ActiveWorkout />} />
+              <Route path="/templates" element={<Templates />} />
+              <Route path="/workout/5x5/setup" element={<FiveByFiveSetup />} />
+              <Route path="/workout/5x5/active" element={<FiveByFiveWorkout />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }
