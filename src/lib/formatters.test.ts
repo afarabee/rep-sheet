@@ -71,6 +71,20 @@ describe('formatWorkoutType', () => {
   it('returns unknown types as-is', () => {
     expect(formatWorkoutType('something_new')).toBe('something_new')
   })
+
+  it('returns "Template" for null input', () => {
+    expect(formatWorkoutType(null)).toBe('Template')
+  })
+
+  it('returns short labels when short option is true', () => {
+    expect(formatWorkoutType('five_by_five_a', { short: true })).toBe('5×5 A')
+    expect(formatWorkoutType('five_by_five_b', { short: true })).toBe('5×5 B')
+  })
+
+  it('returns normal labels for non-5x5 types with short option', () => {
+    expect(formatWorkoutType('freeform', { short: true })).toBe('Freeform')
+    expect(formatWorkoutType('stretch', { short: true })).toBe('Stretch')
+  })
 })
 
 // ─── formatTime ──────────────────────────────────────────────────────────────

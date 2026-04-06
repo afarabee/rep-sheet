@@ -13,15 +13,15 @@ export function formatDuration(started: string | null, completed: string | null)
   return mins > 0 ? `${mins} min` : null
 }
 
-/** Map workout_type DB value to display label. */
-export function formatWorkoutType(type: string): string {
+/** Map workout_type DB value to display label. Use { short: true } for compact labels. */
+export function formatWorkoutType(type: string | null, opts?: { short?: boolean }): string {
   switch (type) {
-    case 'five_by_five_a': return '5×5 Workout A'
-    case 'five_by_five_b': return '5×5 Workout B'
+    case 'five_by_five_a': return opts?.short ? '5×5 A' : '5×5 Workout A'
+    case 'five_by_five_b': return opts?.short ? '5×5 B' : '5×5 Workout B'
     case 'freeform':       return 'Freeform'
     case 'template':       return 'Template'
     case 'stretch':        return 'Stretch'
-    default:               return type
+    default:               return type ?? 'Template'
   }
 }
 

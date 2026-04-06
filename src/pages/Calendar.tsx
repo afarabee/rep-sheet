@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useCalendarData } from '@/hooks/useCalendarData'
 import { scheduleWorkout, removeScheduledWorkout } from '@/hooks/useScheduledWorkouts'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { formatWorkoutType, formatDuration } from '@/lib/formatters'
 import MobileBackButton from '@/components/layout/MobileBackButton'
 import ResizableLayout from '@/components/layout/ResizableLayout'
 import type { CalendarWorkout, ScheduledWorkout } from '@/hooks/useCalendarData'
@@ -27,23 +28,6 @@ function getWorkoutColor(type: string): string {
   return '#00E5FF'
 }
 
-function formatWorkoutType(type: string | null): string {
-  switch (type) {
-    case 'freeform': return 'Freeform'
-    case 'five_by_five_a': return '5×5 A'
-    case 'five_by_five_b': return '5×5 B'
-    case 'template': return 'Template'
-    case 'stretch': return 'Stretch'
-    default: return type ?? 'Template'
-  }
-}
-
-function formatDuration(started: string, completed: string | null): string | null {
-  if (!completed) return null
-  const mins = Math.round((new Date(completed).getTime() - new Date(started).getTime()) / 60000)
-  if (mins < 1) return null
-  return `${mins} min`
-}
 
 function getWorkoutRoute(type: string): string {
   if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
@@ -296,7 +280,7 @@ function DayDetail({
                       style={{ backgroundColor: getWorkoutColor(w.workout_type) }}
                     />
                     <span className="text-sm font-bold text-foreground">
-                      {formatWorkoutType(w.workout_type)}
+                      {formatWorkoutType(w.workout_type, { short: true })}
                     </span>
                   </div>
                   {w.completed_at ? (
@@ -342,7 +326,7 @@ function DayDetail({
                     style={{ borderColor: SCHEDULED_COLOR }}
                   />
                   <span className="text-sm font-bold text-foreground">
-                    {s.template_name ?? formatWorkoutType(s.workout_type)}
+                    {s.template_name ?? formatWorkoutType(s.workout_type, { short: true })}
                   </span>
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#FFD166]/15 text-[#FFD166]">
