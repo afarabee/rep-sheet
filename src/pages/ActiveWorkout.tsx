@@ -321,6 +321,7 @@ export default function ActiveWorkout() {
                     <div className="flex items-center gap-4">
                       <button
                         onClick={() => adjustRestTimer(-30)}
+                        aria-label="Decrease rest time by 30 seconds"
                         className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
                       >
                         −
@@ -333,6 +334,7 @@ export default function ActiveWorkout() {
                       </span>
                       <button
                         onClick={() => adjustRestTimer(30)}
+                        aria-label="Increase rest time by 30 seconds"
                         className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
                       >
                         +

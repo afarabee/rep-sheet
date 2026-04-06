@@ -639,11 +639,11 @@ export default function FiveByFiveWorkout() {
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">Rest</span>
                     <div className="flex items-center gap-4">
-                      <button onClick={() => adjustRestTimer(-30)} className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">−</button>
+                      <button onClick={() => adjustRestTimer(-30)} aria-label="Decrease rest time by 30 seconds" className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">−</button>
                       <span className="font-display text-5xl text-[#E91E8C] min-w-[130px] text-center" style={{ textShadow: '0 0 20px rgba(233,30,140,0.4)' }}>
                         {formatTime(restSecondsLeft)}
                       </span>
-                      <button onClick={() => adjustRestTimer(30)} className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">+</button>
+                      <button onClick={() => adjustRestTimer(30)} aria-label="Increase rest time by 30 seconds" className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">+</button>
                     </div>
                     <button onClick={skipRestTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#9B8FB0] text-xs font-bold uppercase tracking-wider hover:border-[#5E5278] hover:text-foreground transition-colors">Skip</button>
                   </div>

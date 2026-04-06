@@ -130,6 +130,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         </h2>
         <button
           onClick={onClose}
+          aria-label="Close exercise picker"
           className="p-2 rounded-lg text-[#5E5278] hover:text-foreground hover:bg-[#241838] transition-colors"
         >
           <X size={18} />
@@ -150,6 +151,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5E5278] hover:text-foreground"
             >
               <X size={13} />
@@ -302,9 +304,15 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
                 />
                 <span className="text-xs text-muted-foreground">Favorite</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={formIsTimed}
+                aria-label="Timed exercise"
+                onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <span
-                  onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}
                   className={cn(
                     'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
                     formIsTimed ? 'border-[#00E5FF] bg-[#00E5FF]' : 'border-[#5E5278]'
@@ -312,13 +320,17 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
                 >
                   {formIsTimed && <Check size={10} className="text-[#0F0A1A]" />}
                 </span>
-                <span className="text-xs text-muted-foreground" onClick={() => { setFormIsTimed((v) => !v); setFormIsCount(false) }}>
-                  Timed
-                </span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+                <span className="text-xs text-muted-foreground">Timed</span>
+              </button>
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={formIsCount}
+                aria-label="Count exercise"
+                onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
                 <span
-                  onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}
                   className={cn(
                     'size-4 rounded border flex items-center justify-center shrink-0 transition-colors',
                     formIsCount ? 'border-[#7DFFC4] bg-[#7DFFC4]' : 'border-[#5E5278]'
@@ -326,10 +338,8 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
                 >
                   {formIsCount && <Check size={10} className="text-[#0F0A1A]" />}
                 </span>
-                <span className="text-xs text-muted-foreground" onClick={() => { setFormIsCount((v) => !v); setFormIsTimed(false) }}>
-                  Count
-                </span>
-              </label>
+                <span className="text-xs text-muted-foreground">Count</span>
+              </button>
             </div>
             {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
             <div className="flex gap-2">

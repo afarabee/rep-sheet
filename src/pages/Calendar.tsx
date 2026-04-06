@@ -150,7 +150,7 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
         <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FFD166]">
           Schedule Workout
         </div>
-        <button onClick={onCancel} className="p-1 text-[#5E5278] hover:text-foreground">
+        <button onClick={onCancel} aria-label="Close dialog" className="p-1 text-[#5E5278] hover:text-foreground">
           <X size={14} />
         </button>
       </div>
