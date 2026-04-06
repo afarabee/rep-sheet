@@ -476,6 +476,7 @@ export default function Calendar() {
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={goToPrevMonth}
+                  aria-label="Previous month"
                   className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
                 >
                   <ChevronLeft size={18} />
@@ -485,6 +486,7 @@ export default function Calendar() {
                 </span>
                 <button
                   onClick={goToNextMonth}
+                  aria-label="Next month"
                   className="p-1.5 rounded-lg text-[#5E5278] hover:bg-[#241838] hover:text-foreground transition-colors"
                 >
                   <ChevronRight size={18} />
