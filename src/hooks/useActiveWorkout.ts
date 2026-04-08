@@ -47,6 +47,20 @@ export function useActiveWorkout(templateId?: string) {
   const [status, setStatus] = useState<'creating' | 'planning' | 'active' | 'ended'>('creating')
   const [isPaused, setIsPaused] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [templateNotes, setTemplateNotes] = useState<string | null>(null)
+
+  // Load template notes when templateId is provided
+  useEffect(() => {
+    if (!templateId) return
+    supabase
+      .from('workout_templates')
+      .select('notes')
+      .eq('id', templateId)
+      .single()
+      .then(({ data }) => {
+        if (data?.notes) setTemplateNotes(data.notes)
+      })
+  }, [templateId])
 
   useEffect(() => {
     async function init() {
@@ -316,6 +330,7 @@ export function useActiveWorkout(templateId?: string) {
     status,
     isPaused,
     error,
+    templateNotes,
     addExercise,
     removeExercise,
     logSet,

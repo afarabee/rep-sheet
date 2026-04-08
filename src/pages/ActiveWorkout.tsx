@@ -48,6 +48,7 @@ export default function ActiveWorkout() {
     restSecondsLeft,
     status,
     error,
+    templateNotes,
     addExercise,
     removeExercise,
     logSet,
@@ -346,6 +347,16 @@ export default function ActiveWorkout() {
                       Skip
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* Template Notes (read-only) */}
+              {templateNotes && (
+                <div className="bg-[#1A1028] border border-[#3D2E5C] rounded-2xl p-5 mb-5">
+                  <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#8B7FA6] mb-2">
+                    Template Notes
+                  </div>
+                  <p className="text-sm text-[#B8AECE] whitespace-pre-wrap">{templateNotes}</p>
                 </div>
               )}
 
