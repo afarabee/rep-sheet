@@ -546,8 +546,8 @@ export default function Templates() {
                       if (val !== (detail.notes ?? '')) updateNotes(detail.id, val)
                     }}
                     placeholder="Add notes, instructions, or cues…"
-                    rows={2}
-                    className="w-full bg-background border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-foreground resize-none outline-none focus:border-[#E91E8C] transition-colors placeholder:text-[#3D2E5C] mb-4"
+                    rows={4}
+                    className="w-full bg-background border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-foreground resize-y outline-none focus:border-[#E91E8C] transition-colors placeholder:text-[#3D2E5C] mb-4"
                   />
 
                   {detail.exercises.length === 0 && (
