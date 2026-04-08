@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { X, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { formatTime } from '@/lib/formatters'
+import { formatTime, formatDurationFromSeconds } from '@/lib/formatters'
 import { useActiveWorkout } from '@/hooks/useActiveWorkout'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import NumericInput from '@/components/workout/NumericInput'
+import TimedExerciseInput from '@/components/workout/TimedExerciseInput'
 import ResizableLayout from '@/components/layout/ResizableLayout'
 
 // ─── Set Dot indicator ────────────────────────────────────────────────────────
@@ -47,6 +48,7 @@ export default function ActiveWorkout() {
     restSecondsLeft,
     status,
     error,
+    templateNotes,
     addExercise,
     removeExercise,
     logSet,
@@ -350,6 +352,16 @@ export default function ActiveWorkout() {
                 </div>
               )}
 
+              {/* Template Notes (read-only) */}
+              {templateNotes && (
+                <div className="bg-[#1A1028] border border-[#3D2E5C] rounded-2xl p-5 mb-5">
+                  <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#8B7FA6] mb-2">
+                    Template Notes
+                  </div>
+                  <p className="text-sm text-[#B8AECE] whitespace-pre-wrap">{templateNotes}</p>
+                </div>
+              )}
+
               {/* Log Set card */}
               <div className={cn(
                 'bg-card border rounded-2xl p-7 mb-5',
@@ -384,50 +396,17 @@ export default function ActiveWorkout() {
                   )}
 
                   {isTimed ? (
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#B8AECE]">
-                        Time
-                      </label>
-                      <span
-                        className="font-display text-5xl min-w-[130px] text-center"
-                        style={{
-                          color: timerState === 'running' ? '#00E5FF' : timerState === 'paused' ? '#FFD700' : '#B8AECE',
-                          textShadow: timerState === 'running' ? '0 0 20px rgba(0,229,255,0.4)' : 'none',
-                        }}
-                      >
-                        {formatTime(timerState === 'idle' || timerState === 'running' || timerState === 'paused' ? timerSeconds : parseInt(repsInput) || 0)}
-                      </span>
-                      <div className="flex gap-2">
-                        {timerState === 'idle' && (
-                          <button onClick={startTimer} className="px-4 py-2 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
-                            Start
-                          </button>
-                        )}
-                        {timerState === 'running' && (
-                          <button onClick={pauseTimer} className="px-4 py-2 rounded-xl bg-[#FFD700] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
-                            Pause
-                          </button>
-                        )}
-                        {timerState === 'paused' && (
-                          <button onClick={resumeTimer} className="px-4 py-2 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110">
-                            Resume
-                          </button>
-                        )}
-                        {(timerState === 'running' || timerState === 'paused') && (
-                          <button onClick={stopTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#B8AECE] text-xs font-bold uppercase tracking-wider hover:border-[#8B7FA6] hover:text-foreground transition-colors">
-                            Stop
-                          </button>
-                        )}
-                        {timerState !== 'idle' && (
-                          <button onClick={cancelTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#FF4D6A] text-xs font-bold uppercase tracking-wider hover:border-[#FF4D6A] transition-colors">
-                            Cancel
-                          </button>
-                        )}
-                      </div>
-                      {timerState === 'stopped' && (
-                        <NumericInput label="Adjust (sec)" value={repsInput} onChange={setRepsInput} step={5} placeholder="—" />
-                      )}
-                    </div>
+                    <TimedExerciseInput
+                      timerState={timerState}
+                      timerSeconds={timerSeconds}
+                      startTimer={startTimer}
+                      pauseTimer={pauseTimer}
+                      resumeTimer={resumeTimer}
+                      stopTimer={stopTimer}
+                      cancelTimer={cancelTimer}
+                      repsInput={repsInput}
+                      setRepsInput={setRepsInput}
+                    />
                   ) : (
                     <NumericInput
                       label={isCount ? 'Count' : 'Reps'}
@@ -482,7 +461,7 @@ export default function ActiveWorkout() {
                               ? `${set.weight_lbs} lbs`
                               : 'Bodyweight'}
                             {set.reps != null && (
-                              <span className="text-[#9B8FB0]"> × {isCount ? `${set.reps} count` : isTimed ? `${set.reps}s` : `${set.reps} reps`}</span>
+                              <span className="text-[#9B8FB0]"> × {isCount ? `${set.reps} count` : isTimed ? formatDurationFromSeconds(set.reps) : `${set.reps} reps`}</span>
                             )}
                           </span>
                         </div>

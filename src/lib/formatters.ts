@@ -25,11 +25,23 @@ export function formatWorkoutType(type: string | null, opts?: { short?: boolean 
   }
 }
 
-/** Format seconds as "m:ss". */
+/** Format seconds as "m:ss" or "h:mm:ss" for the live timer display. */
 export function formatTime(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
   const s = totalSeconds % 60
+  if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+/** Format total seconds as a compact human-readable string: "1h 30m 45s", "2m 30s", or "45s". */
+export function formatDurationFromSeconds(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  if (h > 0) return `${h}h ${m}m ${s}s`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
 }
 
 /** Format a number with fixed decimals, or "—" for null/undefined. */

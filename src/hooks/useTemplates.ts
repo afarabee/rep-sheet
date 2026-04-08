@@ -152,6 +152,17 @@ export function useTemplates() {
     if (detail?.id === id) setDetail((prev) => prev ? { ...prev, name } : prev)
   }
 
+  async function updateNotes(id: string, notes: string) {
+    setError(null)
+    const { error } = await supabase
+      .from('workout_templates')
+      .update({ notes, updated_at: new Date().toISOString() })
+      .eq('id', id)
+    if (error) { setError(error.message); return }
+    setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, notes } : t))
+    if (detail?.id === id) setDetail((prev) => prev ? { ...prev, notes } : prev)
+  }
+
   async function deleteTemplate(id: string) {
     setError(null)
     const { error } = await supabase.from('workout_templates').delete().eq('id', id)
@@ -262,6 +273,7 @@ export function useTemplates() {
     error,
     saveNewTemplate,
     renameTemplate,
+    updateNotes,
     deleteTemplate,
     addExercise,
     removeExercise,
