@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDate, formatDuration, formatWorkoutType, formatTime, fmt } from './formatters'
+import { formatDate, formatDuration, formatWorkoutType, formatTime, formatDurationFromSeconds, fmt } from './formatters'
 
 // ─── formatDate ──────────────────────────────────────────────────────────────
 
@@ -94,6 +94,54 @@ describe('formatTime', () => {
 
   it('pads single-digit seconds', () => {
     expect(formatTime(61)).toBe('1:01')
+  })
+
+  it('formats hours when >= 3600 seconds', () => {
+    expect(formatTime(3600)).toBe('1:00:00')
+  })
+
+  it('formats hours with minutes and seconds', () => {
+    expect(formatTime(3661)).toBe('1:01:01')
+  })
+
+  it('formats multi-hour durations', () => {
+    expect(formatTime(5445)).toBe('1:30:45')
+  })
+
+  it('pads minutes and seconds in hour format', () => {
+    expect(formatTime(3605)).toBe('1:00:05')
+  })
+})
+
+// ─── formatDurationFromSeconds ──────────────────────────────────────────────
+
+describe('formatDurationFromSeconds', () => {
+  it('formats zero seconds', () => {
+    expect(formatDurationFromSeconds(0)).toBe('0s')
+  })
+
+  it('formats seconds only', () => {
+    expect(formatDurationFromSeconds(45)).toBe('45s')
+  })
+
+  it('formats minutes and seconds', () => {
+    expect(formatDurationFromSeconds(150)).toBe('2m 30s')
+  })
+
+  it('formats exact minutes', () => {
+    expect(formatDurationFromSeconds(120)).toBe('2m 0s')
+  })
+
+  it('formats hours, minutes, and seconds', () => {
+    expect(formatDurationFromSeconds(5445)).toBe('1h 30m 45s')
+  })
+
+  it('formats exact hours', () => {
+    expect(formatDurationFromSeconds(3600)).toBe('1h 0m 0s')
+  })
+
+  it('formats hours and seconds without minutes', () => {
+    expect(formatDurationFromSeconds(3605)).toBe('1h 0m 5s')
   })
 })
 
