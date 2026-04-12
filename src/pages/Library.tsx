@@ -17,7 +17,7 @@ const MUSCLE_GROUPS = [
 const EQUIPMENT_TYPES = [
   'bands', 'barbell', 'bodyweight', 'cable', 'dumbbell',
   'exercise_ball', 'ez_bar', 'foam_roller', 'kettlebell',
-  'machine', 'medicine_ball', 'other',
+  'machine', 'medicine_ball', 'other', 'trx',
 ]
 
 function formatLabel(s: string): string {
