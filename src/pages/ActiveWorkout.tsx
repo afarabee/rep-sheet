@@ -81,9 +81,9 @@ export default function ActiveWorkout() {
   const [notes, setNotes] = useState('')
   const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer(exerciseTimerStorageKey)
 
-  // Pre-populate notes from template or resumed workout
+  // Pre-populate notes from the existing workout session when present.
   useEffect(() => {
-    if (initialNotes) setNotes(initialNotes)
+    setNotes(initialNotes)
   }, [initialNotes]) // eslint-disable-line react-hooks/set-state-in-effect
 
   // Carry forward weight/reps when switching exercises
@@ -376,7 +376,12 @@ export default function ActiveWorkout() {
                   <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#8B7FA6] mb-2">
                     Template Notes
                   </div>
-                  <p className="text-sm text-[#B8AECE] whitespace-pre-wrap">{templateNotes}</p>
+                  <textarea
+                    value={templateNotes}
+                    readOnly
+                    rows={4}
+                    className="w-full bg-background border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-[#B8AECE] whitespace-pre-wrap resize-y min-h-[104px] outline-none"
+                  />
                 </div>
               )}
 

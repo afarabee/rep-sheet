@@ -60,7 +60,7 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
   const [error, setError] = useState<string | null>(null)
   const [templateNotes, setTemplateNotes] = useState<string | null>(null)
 
-  // Load template notes when templateId is provided
+  // Load template notes for read-only display when templateId is provided.
   useEffect(() => {
     if (!templateId) return
     supabase
@@ -162,21 +162,11 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
       setWorkoutId(wid)
 
       if (templateId) {
-        // Fetch template notes and exercises in parallel
-        const [{ data: tplData }, { data: teData }] = await Promise.all([
-          supabase.from('workout_templates').select('notes').eq('id', templateId).single(),
-          supabase
-            .from('workout_template_exercises')
-            .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type, is_timed, is_count)')
-            .eq('template_id', templateId)
-            .order('sort_order', { ascending: true }),
-        ])
-
-        // Copy template notes to the workout
-        if (tplData?.notes) {
-          setInitialNotes(tplData.notes)
-          await supabase.from('workouts').update({ notes: tplData.notes }).eq('id', wid)
-        }
+        const { data: teData } = await supabase
+          .from('workout_template_exercises')
+          .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type, is_timed, is_count)')
+          .eq('template_id', templateId)
+          .order('sort_order', { ascending: true })
 
         if (teData && teData.length > 0) {
           const { data: weData } = await supabase
