@@ -54,7 +54,7 @@ export function use5x5Config() {
   async function addExercise(label: 'A' | 'B', exerciseId: string, name: string) {
     setError(null)
     const currentConfig = label === 'A' ? configA : configB
-    const sortOrder = currentConfig.length
+    const sortOrder = currentConfig.reduce((max, entry) => Math.max(max, entry.sort_order), -1) + 1
     const { data, error: insertError } = await supabase
       .from('five_by_five_config')
       .insert({ workout_label: label, exercise_id: exerciseId, sort_order: sortOrder })
@@ -75,10 +75,33 @@ export function use5x5Config() {
 
   async function removeExercise(configId: string, label: 'A' | 'B') {
     setError(null)
+    const currentConfig = label === 'A' ? configA : configB
     const { error } = await supabase.from('five_by_five_config').delete().eq('id', configId)
     if (error) { setError(error.message); return }
-    if (label === 'A') setConfigA((prev) => prev.filter((e) => e.id !== configId))
-    else setConfigB((prev) => prev.filter((e) => e.id !== configId))
+
+    const reordered = currentConfig
+      .filter((entry) => entry.id !== configId)
+      .map((entry, index) => ({ ...entry, sort_order: index }))
+
+    const reorderResults = await Promise.all(
+      reordered
+        .filter((entry) => {
+          const previous = currentConfig.find((candidate) => candidate.id === entry.id)
+          return previous?.sort_order !== entry.sort_order
+        })
+        .map((entry) =>
+          supabase
+            .from('five_by_five_config')
+            .update({ sort_order: entry.sort_order })
+            .eq('id', entry.id)
+        )
+    )
+
+    const reorderError = reorderResults.find((result) => result.error)?.error
+    if (reorderError) { setError(reorderError.message); return }
+
+    if (label === 'A') setConfigA(reordered)
+    else setConfigB(reordered)
   }
 
   async function setWorkingWeight(exerciseId: string, weight: number | null) {

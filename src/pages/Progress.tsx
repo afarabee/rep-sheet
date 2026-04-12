@@ -10,6 +10,7 @@ import OneRepMaxChart from '@/components/charts/OneRepMaxChart'
 import ExerciseChartPicker from '@/components/charts/ExerciseChartPicker'
 import { useProgressData } from '@/hooks/useProgressData'
 import { useExerciseOptions, useExerciseProgress } from '@/hooks/useExerciseProgress'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { TimePeriod } from '@/components/charts/chartTheme'
 
 type Section = 'body' | 'frequency' | 'exercise'
@@ -21,6 +22,7 @@ const sections: { id: Section; label: string; Icon: typeof Activity }[] = [
 ]
 
 export default function Progress() {
+  const isMobile = useIsMobile()
   const [period, setPeriod] = useState<TimePeriod>('3m')
   const [section, setSection] = useState<Section>('body')
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null)
@@ -30,9 +32,9 @@ export default function Progress() {
   const { data: exerciseData, loading: exLoading } = useExerciseProgress(selectedExercise, period)
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden">
       {/* Left Pane — Section Nav + Exercise Picker */}
-      <div className="w-56 shrink-0 border-r border-border flex flex-col bg-card/50">
+      <div className="w-full lg:w-56 lg:shrink-0 border-b lg:border-b-0 lg:border-r border-border flex flex-col bg-card/50">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp size={18} className="text-[#E91E8C]" />
@@ -42,7 +44,7 @@ export default function Progress() {
           </div>
 
           {/* Section tabs */}
-          <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-1">
             {sections.map((s) => (
               <button
                 key={s.id}
@@ -63,7 +65,7 @@ export default function Progress() {
 
         {/* Exercise picker (only in exercise section) */}
         {section === 'exercise' && (
-          <div className="flex-1 overflow-hidden px-4 pt-3 flex flex-col">
+          <div className="flex-1 overflow-hidden px-4 pt-3 pb-4 lg:pb-0 flex flex-col min-h-0">
             <ExerciseChartPicker
               exercises={exerciseOptions}
               selected={selectedExercise}
@@ -75,9 +77,9 @@ export default function Progress() {
 
       {/* Right Pane — Charts */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Time Period Selector */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div className="text-[11px] font-black text-[#5E5278] uppercase tracking-[0.2em]">
               {section === 'body' && 'Body Composition'}
               {section === 'frequency' && 'Training Frequency'}
@@ -106,8 +108,8 @@ export default function Progress() {
                     <OneRepMaxChart data={exerciseData} />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-64 text-[#5E5278] text-sm">
-                    Pick an exercise from the left to see charts
+                  <div className="flex items-center justify-center h-64 text-[#5E5278] text-sm text-center px-4">
+                    Pick an exercise from the {isMobile ? 'top panel' : 'left'} to see charts
                   </div>
                 )
               )}

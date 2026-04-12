@@ -174,13 +174,13 @@ function EntryDetail({ entry, onDelete }: { entry: BodyCompEntry; onDelete: () =
             </span>
           )}
         </div>
-        <div className="text-5xl font-black text-[#00F5D4] leading-none">
+        <div className="text-4xl sm:text-5xl font-black text-[#00F5D4] leading-none">
           {entry.weight_lbs != null ? entry.weight_lbs.toFixed(1) : '—'}
           <span className="text-xl font-normal text-[#5E5278] ml-2">lbs</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
         {FIELDS.filter(f => f.key !== 'weight_lbs').map((f) => (
           <div key={f.key} className="bg-[#1A1028] rounded-xl p-3">
             <div className="text-[10px] uppercase tracking-wider text-[#5E5278] mb-1">{f.label}</div>
@@ -193,7 +193,7 @@ function EntryDetail({ entry, onDelete }: { entry: BodyCompEntry; onDelete: () =
 
       <div className="mt-auto">
         {confirming ? (
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={onDelete}
               className="flex-1 py-2.5 rounded-xl border border-[#FF4D6A] text-[#FF4D6A] text-sm font-bold hover:bg-[#FF4D6A]/10 transition-colors"
@@ -236,7 +236,7 @@ function SessionDetail({ session, onDelete }: { session: MeasurementSession; onD
         <div className="text-3xl font-black text-foreground">{session.displayDate}</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
         {session.measurements.map((m) => (
           <div key={m.id} className="bg-[#1A1028] rounded-xl p-3">
             <div className="text-[10px] uppercase tracking-wider text-[#5E5278] mb-1">{m.measurement_type}</div>
@@ -249,7 +249,7 @@ function SessionDetail({ session, onDelete }: { session: MeasurementSession; onD
 
       <div className="mt-auto">
         {confirming ? (
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={onDelete}
               className="flex-1 py-2.5 rounded-xl border border-[#FF4D6A] text-[#FF4D6A] text-sm font-bold hover:bg-[#FF4D6A]/10 transition-colors"
@@ -294,7 +294,7 @@ function MethodPicker({ onSelect, onCancel }: {
     <div className="max-w-md">
       <div className="text-lg font-bold text-foreground mb-1">Log Weigh-In</div>
       <div className="text-xs text-[#5E5278] mb-5">Choose how you measured today.</div>
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
         {METHODS.map(({ source, label, subtitle, Icon }) => (
           <button
             key={source}
@@ -481,7 +481,7 @@ export default function BodyComp() {
             {logSource ? sourceLabel(logSource) : 'Manual'} measurement
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <div className="col-span-2">
               <label className="block text-[10px] uppercase tracking-wider text-[#5E5278] mb-1">Date</label>
               <input
@@ -508,7 +508,7 @@ export default function BodyComp() {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSaveEntry}
               className="flex-1 py-3 rounded-xl bg-[#E91E8C] text-white font-bold text-sm hover:bg-[#C4176F] transition-colors"
@@ -533,7 +533,7 @@ export default function BodyComp() {
           <div className="text-lg font-bold text-foreground mb-1">Log Measurements</div>
           <div className="text-xs text-[#5E5278] mb-5">Fill in what you measured. Leave the rest blank.</div>
 
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <div className="col-span-2">
               <label className="block text-[10px] uppercase tracking-wider text-[#5E5278] mb-1">Date</label>
               <input
@@ -562,7 +562,7 @@ export default function BodyComp() {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSaveMeasurements}
               className="flex-1 py-3 rounded-xl bg-[#7DFFC4] text-[#0F0A1A] font-bold text-sm hover:brightness-105 transition-all"

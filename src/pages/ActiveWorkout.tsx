@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { X, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -6,6 +6,7 @@ import { formatTime, formatDurationFromSeconds } from '@/lib/formatters'
 import { useActiveWorkout } from '@/hooks/useActiveWorkout'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExerciseTimer } from '@/hooks/useExerciseTimer'
+import { clearPersistedExerciseTimer, getExerciseTimerStorageKey } from '@/lib/workoutSession'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import NumericInput from '@/components/workout/NumericInput'
 import TimedExerciseInput from '@/components/workout/TimedExerciseInput'
@@ -42,6 +43,7 @@ export default function ActiveWorkout() {
   const templateId = searchParams.get('templateId') ?? undefined
   const scheduledId = searchParams.get('scheduledId') ?? undefined
   const {
+    workoutId,
     workoutExercises,
     activeExerciseIndex,
     setActiveExerciseIndex,
@@ -71,29 +73,38 @@ export default function ActiveWorkout() {
   const [confirmEnd, setConfirmEnd] = useState(false)
   const [weightInput, setWeightInput] = useState('')
   const [repsInput, setRepsInput] = useState('')
-  const [notes, setNotes] = useState('')
-  const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer()
-
   const activeExercise = workoutExercises[activeExerciseIndex] ?? null
+  const exerciseTimerStorageKey = workoutId && activeExercise
+    ? getExerciseTimerStorageKey(workoutId, activeExercise.id)
+    : null
+  const previousExerciseIdRef = useRef<string | null>(null)
+  const [notes, setNotes] = useState('')
+  const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer(exerciseTimerStorageKey)
 
   // Pre-populate notes from template or resumed workout
   useEffect(() => {
     if (initialNotes) setNotes(initialNotes)
-  }, [initialNotes])
+  }, [initialNotes]) // eslint-disable-line react-hooks/set-state-in-effect
 
   // Carry forward weight/reps when switching exercises
   useEffect(() => {
+    const previousExerciseId = previousExerciseIdRef.current
+    if (workoutId && previousExerciseId && previousExerciseId !== activeExercise?.id) {
+      clearPersistedExerciseTimer(getExerciseTimerStorageKey(workoutId, previousExerciseId))
+    }
+
+    previousExerciseIdRef.current = activeExercise?.id ?? null
+
     if (!activeExercise) return
     const lastSet = activeExercise.sets[activeExercise.sets.length - 1]
     setWeightInput(lastSet?.weight_lbs != null ? String(lastSet.weight_lbs) : '')
     setRepsInput(lastSet?.reps != null ? String(lastSet.reps) : '')
-    cancelTimer()
-  }, [activeExerciseIndex, activeExercise?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeExerciseIndex, activeExercise?.id, workoutId]) // eslint-disable-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
 
   // Auto-populate repsInput when exercise timer stops
   useEffect(() => {
     if (timerState === 'stopped') setRepsInput(String(timerSeconds))
-  }, [timerState]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timerState]) // eslint-disable-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
 
   // Navigate away when workout ends
   useEffect(() => {
@@ -181,7 +192,7 @@ export default function ActiveWorkout() {
                     {/* Remove button */}
                     <button
                       onClick={(e) => { e.stopPropagation(); removeExercise(ex.id) }}
-                      className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
+                      className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
                       aria-label="Remove exercise"
                     >
                       <X size={13} />
@@ -261,7 +272,7 @@ export default function ActiveWorkout() {
             </div>
           ) : (
             <div className={cn(
-              'h-full overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
+              'h-full overflow-y-auto overflow-x-hidden p-4 pb-24 lg:p-6 lg:pb-8 bg-radial-purple',
               isMobile && showExerciseList && 'hidden'
             )}>
 
@@ -280,7 +291,7 @@ export default function ActiveWorkout() {
 
           {/* Active exercise logging */}
           {activeExercise && (
-            <div className="max-w-2xl">
+            <div className="max-w-3xl">
 
               {/* Mobile: switch exercise button */}
               {isMobile && (
@@ -316,27 +327,27 @@ export default function ActiveWorkout() {
               {/* Rest Timer */}
               {restSecondsLeft !== null && (
                 <div
-                  className="rounded-2xl p-5 mb-5 neon-glow"
+                  className="rounded-2xl p-4 sm:p-5 mb-5 neon-glow"
                   style={{
                     backgroundColor: '#1A1028',
                     border: '2px solid #E91E8C',
                     boxShadow: '0 0 20px rgba(233,30,140,0.25), inset 0 0 20px rgba(233,30,140,0.1)',
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">
                       Rest
                     </span>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <button
                         onClick={() => adjustRestTimer(-30)}
                         aria-label="Decrease rest time by 30 seconds"
-                        className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
+                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
                       >
                         −
                       </button>
                       <span
-                        className="font-display text-5xl text-[#E91E8C] min-w-[130px] text-center"
+                        className="font-display text-4xl sm:text-5xl text-[#E91E8C] min-w-0 flex-1 sm:min-w-[130px] text-center"
                         style={{ textShadow: '0 0 20px rgba(233,30,140,0.4)' }}
                       >
                         {formatTime(restSecondsLeft)}
@@ -344,14 +355,14 @@ export default function ActiveWorkout() {
                       <button
                         onClick={() => adjustRestTimer(30)}
                         aria-label="Increase rest time by 30 seconds"
-                        className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
+                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors"
                       >
                         +
                       </button>
                     </div>
                     <button
                       onClick={skipRestTimer}
-                      className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#9B8FB0] text-xs font-bold uppercase tracking-wider hover:border-[#5E5278] hover:text-foreground transition-colors"
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#9B8FB0] text-xs font-bold uppercase tracking-wider hover:border-[#5E5278] hover:text-foreground transition-colors"
                     >
                       Skip
                     </button>
@@ -371,7 +382,7 @@ export default function ActiveWorkout() {
 
               {/* Log Set card */}
               <div className={cn(
-                'bg-card border rounded-2xl p-7 mb-5',
+                'bg-card border rounded-2xl p-5 sm:p-7 mb-5',
                 isCount ? 'border-[#7DFFC4]/40' : isTimed ? 'border-[#00E5FF]/40' : 'border-border'
               )}>
                 <div className="flex items-center gap-3 mb-5">
@@ -391,7 +402,7 @@ export default function ActiveWorkout() {
                   )}
                 </div>
 
-                <div className="flex gap-6 items-end flex-wrap">
+                <div className="grid grid-cols-1 gap-4 sm:flex sm:flex-wrap sm:items-end sm:gap-6">
                   {!isBodyweight && !isCount && (
                     <NumericInput
                       label="Weight (lbs)"
@@ -427,7 +438,7 @@ export default function ActiveWorkout() {
                   {/* Log Set button */}
                   <button
                     onClick={handleLogSet}
-                    className="h-11 px-6 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
+                    className="min-h-11 w-full sm:w-auto px-6 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
                   >
                     Log Set
                   </button>
@@ -446,7 +457,7 @@ export default function ActiveWorkout() {
 
               {/* Set History */}
               {activeExercise.sets.length > 0 && (
-                <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="bg-card border border-border rounded-2xl p-4 sm:p-6">
                   <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#5E5278] mb-4">
                     Set History
                   </div>
@@ -454,7 +465,7 @@ export default function ActiveWorkout() {
                     {activeExercise.sets.map((set) => (
                       <div
                         key={set.id}
-                        className="flex items-center gap-4 px-4 py-3 rounded-xl bg-background border border-border"
+                        className="flex flex-col items-start gap-2 px-4 py-3 rounded-xl bg-background border border-border sm:flex-row sm:items-center sm:gap-4"
                       >
                         {/* Set number dot */}
                         <div className="w-8 h-8 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] flex items-center justify-center text-xs font-black shrink-0">

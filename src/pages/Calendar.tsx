@@ -171,7 +171,7 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
 
   return (
     <div className="p-4 rounded-2xl bg-card border border-[#FFD166]/30">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <div className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FFD166]">
           Schedule Workout
         </div>
@@ -220,7 +220,7 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
               {selectedExercises.map((ex, i) => (
                 <div
                   key={ex.id}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#1A1028] border border-[#2A2040]"
+                  className="flex items-start sm:items-center justify-between gap-3 px-3 py-2 rounded-lg bg-[#1A1028] border border-[#2A2040]"
                 >
                   <span className="text-xs text-foreground">
                     <span className="text-[#5E5278] mr-2">{i + 1}.</span>
@@ -335,7 +335,7 @@ function DayDetail({
                 onClick={() => navigate('/history')}
                 className="p-4 rounded-2xl bg-card border border-border hover:border-[#3D2E5C] transition-colors text-left"
               >
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -355,7 +355,7 @@ function DayDetail({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#5E5278]">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[#5E5278]">
                   <span>{time}</span>
                   {duration && (
                     <>
@@ -381,7 +381,7 @@ function DayDetail({
               key={s.id}
               className="p-4 rounded-2xl bg-card border border-[#FFD166]/20"
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2">
                   <span
                     className="w-2.5 h-2.5 rounded-full border-2 shrink-0"
@@ -403,7 +403,7 @@ function DayDetail({
               {s.notes && (
                 <p className="text-xs text-[#9B8FB0] mb-2">{s.notes}</p>
               )}
-              <div className="flex gap-2 mt-2">
+              <div className="flex flex-col sm:flex-row gap-2 mt-2">
                 <button
                   onClick={() => handleStartScheduled(s)}
                   className="flex-1 py-2 rounded-lg bg-[#FFD166] text-[#0F0A1A] text-xs font-bold hover:brightness-110 transition-all"

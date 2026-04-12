@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import {
+  clearPersistedExerciseTimersForWorkout,
+  clearPersistedWorkoutPauseState,
+  getPersistedWorkoutPauseState,
+  getWorkoutElapsedSeconds,
+  pausePersistedWorkout,
+  resumePersistedWorkout,
+  setActiveWorkoutSummary,
+} from '@/lib/workoutSession'
 
 export interface WorkoutSet {
   id: string
@@ -39,6 +48,7 @@ function playBeep() {
 }
 
 export function useActiveWorkout(templateId?: string, scheduledId?: string) {
+  const workoutType = templateId ? 'template' : 'freeform'
   const [workoutId, setWorkoutId] = useState<string | null>(null)
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([])
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0)
@@ -68,7 +78,7 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
       // Check for an existing in-progress freeform/template workout
       const { data: existing } = await supabase
         .from('workouts')
-        .select('id, started_at, notes')
+        .select('id, workout_type, started_at, notes')
         .in('workout_type', ['freeform', 'template'])
         .not('started_at', 'is', null)
         .is('completed_at', null)
@@ -82,8 +92,8 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
 
         // Restore elapsed time from started_at
         if (existing.started_at) {
-          const elapsed = Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000)
-          setElapsedSeconds(Math.max(0, elapsed))
+          setElapsedSeconds(getWorkoutElapsedSeconds(existing.started_at, wid))
+          setIsPaused(getPersistedWorkoutPauseState(wid).isPaused)
         }
 
         const { data: weData } = await supabase
@@ -130,12 +140,15 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
         }
 
         if (existing.notes) setInitialNotes(existing.notes)
+        setActiveWorkoutSummary({
+          workoutId: wid,
+          workoutType: existing.workout_type ?? 'freeform',
+        })
         setStatus('active')
         return
       }
 
       // No existing workout — create new
-      const workoutType = templateId ? 'template' : 'freeform'
       const insertPayload: Record<string, string | null> = { workout_type: workoutType, started_at: null }
       if (templateId) insertPayload.template_id = templateId
 
@@ -275,7 +288,7 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
 
   async function addExercise(exerciseId: string, name: string, equipmentType?: string | null, isTimed?: boolean, isCount?: boolean) {
     if (!workoutId) return
-    const sortOrder = workoutExercises.length
+    const sortOrder = workoutExercises.reduce((max, exercise) => Math.max(max, exercise.sort_order), -1) + 1
     const { data, error } = await supabase
       .from('workout_exercises')
       .insert({ workout_id: workoutId, exercise_id: exerciseId, sort_order: sortOrder })
@@ -303,11 +316,38 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
     setError(null)
     const { error } = await supabase.from('workout_exercises').delete().eq('id', workoutExerciseId)
     if (error) { setError(error.message); return }
-    setWorkoutExercises((prev) => {
-      const filtered = prev.filter((ex) => ex.id !== workoutExerciseId)
-      const reordered = filtered.map((ex, i) => ({ ...ex, sort_order: i }))
-      setActiveExerciseIndex((idx) => Math.min(idx, Math.max(0, reordered.length - 1)))
-      return reordered
+
+    const removedIndex = workoutExercises.findIndex((exercise) => exercise.id === workoutExerciseId)
+    const reordered = workoutExercises
+      .filter((exercise) => exercise.id !== workoutExerciseId)
+      .map((exercise, index) => ({ ...exercise, sort_order: index }))
+
+    const reorderResults = await Promise.all(
+      reordered
+        .filter((exercise) => {
+          const previous = workoutExercises.find((candidate) => candidate.id === exercise.id)
+          return previous?.sort_order !== exercise.sort_order
+        })
+        .map((exercise) =>
+          supabase
+            .from('workout_exercises')
+            .update({ sort_order: exercise.sort_order })
+            .eq('id', exercise.id)
+        )
+    )
+
+    const reorderError = reorderResults.find((result) => result.error)?.error
+    if (reorderError) {
+      setError(reorderError.message)
+      return
+    }
+
+    setWorkoutExercises(reordered)
+    setActiveExerciseIndex((currentIndex) => {
+      if (reordered.length === 0) return 0
+      if (removedIndex === -1 || removedIndex > currentIndex) return currentIndex
+      if (removedIndex < currentIndex) return currentIndex - 1
+      return Math.min(currentIndex, reordered.length - 1)
     })
   }
 
@@ -350,15 +390,26 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
     setRestSecondsLeft(null)
   }
 
-  function pauseWorkout() { setIsPaused(true) }
-  function resumeWorkout() { setIsPaused(false) }
+  function pauseWorkout() {
+    if (!workoutId) return
+    pausePersistedWorkout(workoutId)
+    setIsPaused(true)
+  }
+
+  function resumeWorkout() {
+    if (!workoutId) return
+    resumePersistedWorkout(workoutId)
+    setIsPaused(false)
+  }
 
   async function startWorkout() {
     if (!workoutId) return
+    clearPersistedWorkoutPauseState(workoutId)
     await supabase
       .from('workouts')
       .update({ started_at: new Date().toISOString() })
       .eq('id', workoutId)
+    setActiveWorkoutSummary({ workoutId, workoutType })
     setStatus('active')
   }
 
@@ -368,6 +419,9 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
       .from('workouts')
       .update({ completed_at: new Date().toISOString() })
       .eq('id', workoutId)
+    clearPersistedWorkoutPauseState(workoutId)
+    clearPersistedExerciseTimersForWorkout(workoutId)
+    setActiveWorkoutSummary(null)
     setStatus('ended')
   }
 
@@ -379,6 +433,9 @@ export function useActiveWorkout(templateId?: string, scheduledId?: string) {
   async function cancelWorkout() {
     if (!workoutId) return
     await supabase.from('workouts').delete().eq('id', workoutId)
+    clearPersistedWorkoutPauseState(workoutId)
+    clearPersistedExerciseTimersForWorkout(workoutId)
+    setActiveWorkoutSummary(null)
     setStatus('ended')
   }
 

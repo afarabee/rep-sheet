@@ -176,10 +176,10 @@ export function useTemplates() {
 
   async function addExercise(templateId: string, exerciseId: string, name: string, isTimed?: boolean, isCount?: boolean) {
     setError(null)
-    const currentCount = detail?.exercises.length ?? 0
+    const sortOrder = (detail?.exercises ?? []).reduce((max, exercise) => Math.max(max, exercise.sort_order), -1) + 1
     const { data, error: insertError } = await supabase
       .from('workout_template_exercises')
-      .insert({ template_id: templateId, exercise_id: exerciseId, sort_order: currentCount })
+      .insert({ template_id: templateId, exercise_id: exerciseId, sort_order: sortOrder })
       .select('id')
       .single()
     if (insertError) { setError(insertError.message); return }
@@ -187,7 +187,7 @@ export function useTemplates() {
     const newEx: TemplateExercise = {
       id: data.id,
       exercise_id: exerciseId,
-      sort_order: currentCount,
+      sort_order: sortOrder,
       name,
       prescribed_sets: 3,
       prescribed_reps: null,
@@ -202,13 +202,32 @@ export function useTemplates() {
 
   async function removeExercise(templateExerciseId: string) {
     setError(null)
+    const currentExercises = detail?.exercises ?? []
     const { error } = await supabase.from('workout_template_exercises').delete().eq('id', templateExerciseId)
     if (error) { setError(error.message); return }
-    setDetail((prev) => {
-      if (!prev) return prev
-      const filtered = prev.exercises.filter((e) => e.id !== templateExerciseId)
-      return { ...prev, exercises: filtered }
-    })
+
+    const reordered = currentExercises
+      .filter((exercise) => exercise.id !== templateExerciseId)
+      .map((exercise, index) => ({ ...exercise, sort_order: index }))
+
+    const reorderResults = await Promise.all(
+      reordered
+        .filter((exercise) => {
+          const previous = currentExercises.find((candidate) => candidate.id === exercise.id)
+          return previous?.sort_order !== exercise.sort_order
+        })
+        .map((exercise) =>
+          supabase
+            .from('workout_template_exercises')
+            .update({ sort_order: exercise.sort_order })
+            .eq('id', exercise.id)
+        )
+    )
+
+    const reorderError = reorderResults.find((result) => result.error)?.error
+    if (reorderError) { setError(reorderError.message); return }
+
+    setDetail((prev) => prev ? { ...prev, exercises: reordered } : prev)
     if (selectedId) {
       setTemplates((prev) =>
         prev.map((t) => t.id === selectedId ? { ...t, exercise_count: Math.max(0, t.exercise_count - 1) } : t)

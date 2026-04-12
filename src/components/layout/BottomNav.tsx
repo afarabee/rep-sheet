@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Home, ScrollText, BookOpen, LayoutTemplate, Settings, Dumbbell } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { useActiveWorkoutPresence } from '@/hooks/useActiveWorkoutPresence'
 
 function getWorkoutRoute(type: string | null): string {
   if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
@@ -18,23 +17,7 @@ const navItems = [
 ]
 
 export default function BottomNav() {
-  const [hasActiveWorkout, setHasActiveWorkout] = useState(false)
-  const [activeWorkoutType, setActiveWorkoutType] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function check() {
-      const { data } = await supabase
-        .from('workouts')
-        .select('id, workout_type')
-        .not('started_at', 'is', null)
-        .is('completed_at', null)
-        .limit(1)
-      const found = (data?.length ?? 0) > 0
-      setHasActiveWorkout(found)
-      setActiveWorkoutType(found ? (data![0].workout_type ?? null) : null)
-    }
-    check()
-  }, [])
+  const { hasActiveWorkout, activeWorkoutType } = useActiveWorkoutPresence()
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border z-40">

@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import {
+  clearPersistedExerciseTimersForWorkout,
+  clearPersistedWorkoutPauseState,
+  getPersistedWorkoutPauseState,
+  getWorkoutElapsedSeconds,
+  pausePersistedWorkout,
+  resumePersistedWorkout,
+  setActiveWorkoutSummary,
+} from '@/lib/workoutSession'
 
 export interface FiveByFiveSet {
   id: string
@@ -38,6 +47,7 @@ function playBeep() {
 }
 
 export function use5x5Workout(label: 'A' | 'B') {
+  const workoutType = label === 'A' ? 'five_by_five_a' : 'five_by_five_b'
   const [workoutId, setWorkoutId] = useState<string | null>(null)
   const [exercises, setExercises] = useState<FiveByFiveExercise[]>([])
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0)
@@ -66,8 +76,8 @@ export function use5x5Workout(label: 'A' | 'B') {
 
         // Restore elapsed time from started_at
         if (existing.started_at) {
-          const elapsed = Math.floor((Date.now() - new Date(existing.started_at).getTime()) / 1000)
-          setElapsedSeconds(Math.max(0, elapsed))
+          setElapsedSeconds(getWorkoutElapsedSeconds(existing.started_at, wid))
+          setIsPaused(getPersistedWorkoutPauseState(wid).isPaused)
         }
 
         const [weResult, weightsResult] = await Promise.all([
@@ -124,6 +134,10 @@ export function use5x5Workout(label: 'A' | 'B') {
           setExercises(exs)
         }
 
+        setActiveWorkoutSummary({
+          workoutId: wid,
+          workoutType: existing.workout_type ?? workoutType,
+        })
         setStatus('active')
         return
       }
@@ -145,7 +159,6 @@ export function use5x5Workout(label: 'A' | 'B') {
         (weightsResult.data ?? []).map((w) => [w.exercise_id, w.weight_lbs as number | null])
       )
 
-      const workoutType = label === 'A' ? 'five_by_five_a' : 'five_by_five_b'
       const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
         .insert({ workout_type: workoutType, started_at: null })
@@ -197,7 +210,7 @@ export function use5x5Workout(label: 'A' | 'B') {
     }
 
     init()
-  }, [label])
+  }, [label, workoutType])
 
   // Elapsed timer — counts up while active and not paused
   useEffect(() => {
@@ -214,15 +227,26 @@ export function use5x5Workout(label: 'A' | 'B') {
     return () => clearTimeout(t)
   }, [restSecondsLeft])
 
-  function pauseWorkout() { setIsPaused(true) }
-  function resumeWorkout() { setIsPaused(false) }
+  function pauseWorkout() {
+    if (!workoutId) return
+    pausePersistedWorkout(workoutId)
+    setIsPaused(true)
+  }
+
+  function resumeWorkout() {
+    if (!workoutId) return
+    resumePersistedWorkout(workoutId)
+    setIsPaused(false)
+  }
 
   async function startWorkout() {
     if (!workoutId) return
+    clearPersistedWorkoutPauseState(workoutId)
     await supabase
       .from('workouts')
       .update({ started_at: new Date().toISOString() })
       .eq('id', workoutId)
+    setActiveWorkoutSummary({ workoutId, workoutType })
     setStatus('active')
   }
 
@@ -284,7 +308,7 @@ export function use5x5Workout(label: 'A' | 'B') {
 
   async function addExercise(exerciseId: string, name: string, equipmentType?: string | null, isTimed?: boolean, isCount?: boolean) {
     if (!workoutId) return
-    const sortOrder = exercises.length
+    const sortOrder = exercises.reduce((max, exercise) => Math.max(max, exercise.sort_order), -1) + 1
     const { data, error } = await supabase
       .from('workout_exercises')
       .insert({ workout_id: workoutId, exercise_id: exerciseId, sort_order: sortOrder })
@@ -342,6 +366,9 @@ export function use5x5Workout(label: 'A' | 'B') {
   async function cancelWorkout() {
     if (!workoutId) return
     await supabase.from('workouts').delete().eq('id', workoutId)
+    clearPersistedWorkoutPauseState(workoutId)
+    clearPersistedExerciseTimersForWorkout(workoutId)
+    setActiveWorkoutSummary(null)
     setStatus('ended')
   }
 
@@ -351,6 +378,9 @@ export function use5x5Workout(label: 'A' | 'B') {
       .from('workouts')
       .update({ completed_at: new Date().toISOString() })
       .eq('id', workoutId)
+    clearPersistedWorkoutPauseState(workoutId)
+    clearPersistedExerciseTimersForWorkout(workoutId)
+    setActiveWorkoutSummary(null)
     setStatus('ended')
   }
 

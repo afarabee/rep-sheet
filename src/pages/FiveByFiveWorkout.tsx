@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Settings, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,6 +8,7 @@ import { useAbCircuit } from '@/hooks/useAbCircuit'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExerciseTimer } from '@/hooks/useExerciseTimer'
 import { supabase } from '@/lib/supabase'
+import { clearPersistedExerciseTimer, getExerciseTimerStorageKey } from '@/lib/workoutSession'
 import ExercisePicker from '@/components/workout/ExercisePicker'
 import NumericInput from '@/components/workout/NumericInput'
 import TimedExerciseInput from '@/components/workout/TimedExerciseInput'
@@ -79,9 +80,12 @@ export default function FiveByFiveWorkout() {
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set())
   const [weightInput, setWeightInput] = useState('')
   const [repsInput, setRepsInput] = useState('5')
-  const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer()
-
   const activeExercise = exercises[activeExerciseIndex] ?? null
+  const exerciseTimerStorageKey = workoutId && activeExercise
+    ? getExerciseTimerStorageKey(workoutId, activeExercise.workoutExerciseId)
+    : null
+  const previousExerciseIdRef = useRef<string | null>(null)
+  const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer(exerciseTimerStorageKey)
   const isCurrentComplete = activeExercise ? activeExercise.sets.length >= 5 : false
   const nextSetNumber = Math.min((activeExercise?.sets.length ?? 0) + 1, 5)
   const isBodyweight = activeExercise?.equipment_type === 'bodyweight'
@@ -101,6 +105,13 @@ export default function FiveByFiveWorkout() {
 
   // Pre-fill weight/reps when switching exercises
   useEffect(() => {
+    const previousExerciseId = previousExerciseIdRef.current
+    if (workoutId && previousExerciseId && previousExerciseId !== activeExercise?.workoutExerciseId) {
+      clearPersistedExerciseTimer(getExerciseTimerStorageKey(workoutId, previousExerciseId))
+    }
+
+    previousExerciseIdRef.current = activeExercise?.workoutExerciseId ?? null
+
     if (!activeExercise) return
     const lastSet = activeExercise.sets[activeExercise.sets.length - 1]
     if (lastSet) {
@@ -110,13 +121,12 @@ export default function FiveByFiveWorkout() {
       setWeightInput(activeExercise.workingWeight != null ? String(activeExercise.workingWeight) : '')
       setRepsInput('5')
     }
-    cancelTimer()
-  }, [activeExerciseIndex, activeExercise?.workoutExerciseId]) // eslint-disable-line
+  }, [activeExerciseIndex, activeExercise?.workoutExerciseId, workoutId]) // eslint-disable-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
 
   // Auto-populate repsInput when exercise timer stops
   useEffect(() => {
     if (timerState === 'stopped') setRepsInput(String(timerSeconds))
-  }, [timerState]) // eslint-disable-line
+  }, [timerState]) // eslint-disable-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
 
   // Auto-advance 2s after exercise completes
   useEffect(() => {
@@ -336,7 +346,7 @@ export default function FiveByFiveWorkout() {
             </div>
           ) : (
             <div className={cn(
-              'h-full overflow-y-auto overflow-x-hidden p-4 lg:p-6 bg-radial-purple',
+              'h-full overflow-y-auto overflow-x-hidden p-4 pb-24 lg:p-6 lg:pb-8 bg-radial-purple',
               isMobile && showExerciseList && 'hidden'
             )}>
 
@@ -352,7 +362,7 @@ export default function FiveByFiveWorkout() {
 
           {/* Planning state — exercise preview */}
           {status === 'planning' && (
-            <div className="max-w-2xl">
+            <div className="max-w-3xl">
               <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] mb-2 text-neon-glow">
                 5×5 Workout {label}
               </div>
@@ -377,13 +387,13 @@ export default function FiveByFiveWorkout() {
                 <>
                   <div className="flex flex-col gap-3 mb-8">
                     {exercises.map((ex) => (
-                      <div key={ex.workoutExerciseId} className="flex items-center justify-between bg-card border border-border rounded-xl px-5 py-4">
+                      <div key={ex.workoutExerciseId} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card border border-border rounded-xl px-5 py-4">
                         <div>
                           <div className="text-sm font-bold text-foreground">{ex.name}</div>
                           <div className="text-[11px] text-[#5E5278] mt-0.5">5 sets × 5 reps</div>
                         </div>
                         {ex.workingWeight != null && (
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <div className="weight-number text-xl font-black text-[#00E5FF]">{ex.workingWeight}</div>
                             <div className="text-[10px] text-[#5E5278]">lbs</div>
                           </div>
@@ -404,20 +414,20 @@ export default function FiveByFiveWorkout() {
 
           {/* Workout complete screen */}
           {status === 'complete' && (
-            <div className="h-full flex flex-col items-center justify-center gap-8">
-              <div className="text-7xl">💪</div>
+            <div className="h-full flex flex-col items-center justify-center gap-6 sm:gap-8 px-4 text-center">
+              <div className="text-6xl sm:text-7xl">💪</div>
               <h1
-                className="font-display text-5xl uppercase text-center leading-tight"
+                className="font-display text-4xl sm:text-5xl uppercase text-center leading-tight"
                 style={{ background: 'linear-gradient(135deg, #7DFFC4 0%, #00E5FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
               >
                 Workout<br />Complete!
               </h1>
-              <div className="flex gap-8 text-center">
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 text-center">
                 <div>
                   <div className="weight-number text-4xl font-black text-[#E91E8C]">{totalSets}</div>
                   <div className="text-xs text-[#5E5278] uppercase tracking-wider mt-1">Sets Logged</div>
                 </div>
-                <div className="w-px bg-border" />
+                <div className="h-px w-full sm:h-auto sm:w-px bg-border" />
                 <div>
                   <div className="weight-number text-4xl font-black text-[#00E5FF]">{totalVolume.toLocaleString()}</div>
                   <div className="text-xs text-[#5E5278] uppercase tracking-wider mt-1">Total Volume (lbs)</div>
@@ -429,10 +439,10 @@ export default function FiveByFiveWorkout() {
                 onBlur={() => saveNotes(notes)}
                 placeholder="How did it feel? Anything to remember…"
                 rows={3}
-                className="w-72 bg-card border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-foreground resize-none outline-none focus:border-[#E91E8C] transition-colors placeholder:text-[#3D2E5C]"
+                className="w-full max-w-sm bg-card border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-foreground resize-none outline-none focus:border-[#E91E8C] transition-colors placeholder:text-[#3D2E5C]"
               />
 
-              <div className="flex flex-col items-center gap-3 w-72">
+              <div className="flex flex-col items-center gap-3 w-full max-w-sm">
                 {abConfig.length > 0 ? (
                   <button
                     onClick={startAbCircuit}
@@ -579,10 +589,10 @@ export default function FiveByFiveWorkout() {
               {/* Exercise complete banner */}
               {isCurrentComplete && (
                 <div
-                  className="rounded-2xl p-5 mb-5"
+                  className="rounded-2xl p-4 sm:p-5 mb-5"
                   style={{ backgroundColor: 'rgba(125,255,196,0.08)', border: '2px solid #7DFFC4', boxShadow: '0 0 20px rgba(125,255,196,0.15)' }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#7DFFC4] mb-1">
                         Exercise Complete!
@@ -593,7 +603,7 @@ export default function FiveByFiveWorkout() {
                     </div>
                     <button
                       onClick={() => advanceToNext()}
-                      className="px-5 py-2.5 rounded-xl bg-[#7DFFC4] text-[#0F0A1A] text-xs font-black uppercase tracking-wider hover:brightness-110 transition-all active:scale-95"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#7DFFC4] text-[#0F0A1A] text-xs font-black uppercase tracking-wider hover:brightness-110 transition-all active:scale-95"
                     >
                       Next →
                     </button>
@@ -601,7 +611,7 @@ export default function FiveByFiveWorkout() {
 
                   {/* Progressive overload suggestion */}
                   {showSuggestion && suggestedWeight != null && activeExercise != null && (
-                    <div className="mt-4 pt-4 border-t border-[#7DFFC4]/20 flex items-center justify-between gap-4">
+                    <div className="mt-4 pt-4 border-t border-[#7DFFC4]/20 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <div className="text-xs font-bold text-foreground">
                           Next session: try{' '}
@@ -609,7 +619,7 @@ export default function FiveByFiveWorkout() {
                         </div>
                         <div className="text-[11px] text-[#5E5278] mt-0.5">+5 lbs from {activeExercise.workingWeight} lbs</div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:shrink-0">
                         <button
                           onClick={() => {
                             updateWorkingWeight(activeExercise.exerciseId, suggestedWeight)
@@ -634,19 +644,19 @@ export default function FiveByFiveWorkout() {
               {/* Rest timer */}
               {restSecondsLeft !== null && (
                 <div
-                  className="rounded-2xl p-5 mb-5"
+                  className="rounded-2xl p-4 sm:p-5 mb-5"
                   style={{ backgroundColor: '#1A1028', border: '2px solid #E91E8C', boxShadow: '0 0 20px rgba(233,30,140,0.25), inset 0 0 20px rgba(233,30,140,0.1)' }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] text-neon-glow">Rest</span>
-                    <div className="flex items-center gap-4">
-                      <button onClick={() => adjustRestTimer(-30)} aria-label="Decrease rest time by 30 seconds" className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">−</button>
-                      <span className="font-display text-5xl text-[#E91E8C] min-w-[130px] text-center" style={{ textShadow: '0 0 20px rgba(233,30,140,0.4)' }}>
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
+                      <button onClick={() => adjustRestTimer(-30)} aria-label="Decrease rest time by 30 seconds" className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">−</button>
+                      <span className="font-display text-4xl sm:text-5xl text-[#E91E8C] min-w-0 flex-1 sm:min-w-[130px] text-center" style={{ textShadow: '0 0 20px rgba(233,30,140,0.4)' }}>
                         {formatTime(restSecondsLeft)}
                       </span>
                       <button onClick={() => adjustRestTimer(30)} aria-label="Increase rest time by 30 seconds" className="w-12 h-12 rounded-xl bg-[#241838] border border-[#3D2E5C] text-foreground text-xl font-bold flex items-center justify-center hover:border-[#E91E8C] transition-colors">+</button>
                     </div>
-                    <button onClick={skipRestTimer} className="px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#9B8FB0] text-xs font-bold uppercase tracking-wider hover:border-[#5E5278] hover:text-foreground transition-colors">Skip</button>
+                    <button onClick={skipRestTimer} className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#3D2E5C] text-[#9B8FB0] text-xs font-bold uppercase tracking-wider hover:border-[#5E5278] hover:text-foreground transition-colors">Skip</button>
                   </div>
                 </div>
               )}
@@ -654,7 +664,7 @@ export default function FiveByFiveWorkout() {
               {/* Log set card — hidden when exercise is complete */}
               {!isCurrentComplete && (
                 <div className={cn(
-                  'bg-card border rounded-2xl p-7 mb-5',
+                  'bg-card border rounded-2xl p-5 sm:p-7 mb-5',
                   isCount ? 'border-[#7DFFC4]/40' : isTimed ? 'border-[#00E5FF]/40' : 'border-border'
                 )}>
                   <div className="flex items-center gap-3 mb-5">
@@ -673,7 +683,7 @@ export default function FiveByFiveWorkout() {
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-6 items-end flex-wrap">
+                  <div className="grid grid-cols-1 gap-4 sm:flex sm:flex-wrap sm:items-end sm:gap-6">
                     {!isBodyweight && (
                       <NumericInput label="Weight (lbs)" value={weightInput} onChange={setWeightInput} step={5} placeholder="—" />
                     )}
@@ -694,7 +704,7 @@ export default function FiveByFiveWorkout() {
                     )}
                     <button
                       onClick={handleLogSet}
-                      className="h-16 px-8 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
+                      className="min-h-12 w-full sm:w-auto px-8 rounded-xl bg-[#E91E8C] text-white font-black uppercase tracking-[0.2em] text-sm whitespace-nowrap neon-glow-strong transition-all hover:brightness-110 active:scale-[0.97]"
                     >
                       Log Set
                     </button>
@@ -712,11 +722,11 @@ export default function FiveByFiveWorkout() {
 
               {/* Set history */}
               {activeExercise.sets.length > 0 && (
-                <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="bg-card border border-border rounded-2xl p-4 sm:p-6">
                   <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#5E5278] mb-4">Set History</div>
                   <div className="flex flex-col gap-2">
                     {activeExercise.sets.map((set) => (
-                      <div key={set.id} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-background border border-border">
+                      <div key={set.id} className="flex flex-col items-start gap-2 px-4 py-3 rounded-xl bg-background border border-border sm:flex-row sm:items-center sm:gap-4">
                         <div className="w-8 h-8 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] flex items-center justify-center text-xs font-black shrink-0">
                           {set.set_number}
                         </div>

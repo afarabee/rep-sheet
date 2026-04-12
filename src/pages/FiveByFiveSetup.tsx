@@ -30,8 +30,8 @@ export default function FiveByFiveSetup() {
     <div className="h-full flex flex-col">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0 bg-card">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 border-b border-border shrink-0 bg-card">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => navigate(-1)}
             className="p-2 rounded-lg text-[#5E5278] hover:text-foreground hover:bg-[#241838] transition-colors"
@@ -46,7 +46,7 @@ export default function FiveByFiveSetup() {
           <button
             onClick={() => navigate(`/workout/5x5/active?label=${activeTab}`)}
             disabled={config5x5.length === 0}
-            className="px-6 py-2.5 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-[0.15em] neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-[0.15em] neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Save & Start {activeTab}
           </button>
@@ -75,7 +75,10 @@ export default function FiveByFiveSetup() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Config list */}
-        <div className="flex-1 overflow-y-auto p-6 bg-radial-purple">
+        <div className={cn(
+          'flex-1 overflow-y-auto p-4 sm:p-6 bg-radial-purple',
+          showPicker && 'hidden lg:block'
+        )}>
 
           {loading && (
             <div className="flex items-center justify-center py-16">
@@ -101,9 +104,9 @@ export default function FiveByFiveSetup() {
                   {abConfig.map((entry, i) => (
                     <div
                       key={entry.id}
-                      className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4"
+                      className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
                     >
-                      <div className="flex flex-col gap-1 shrink-0">
+                      <div className="flex flex-row sm:flex-col gap-1 shrink-0">
                         <button
                           onClick={() => reorderAbExercise(entry.id, 'up')}
                           disabled={i === 0}
@@ -160,9 +163,9 @@ export default function FiveByFiveSetup() {
               {config5x5.map((entry, i) => (
                 <div
                   key={entry.id}
-                  className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4"
+                  className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
                 >
-                  <div className="flex flex-col gap-1 shrink-0">
+                  <div className="flex flex-row sm:flex-col gap-1 shrink-0">
                     <button
                       onClick={() => reorderExercise(activeTab as 'A' | 'B', entry.id, 'up')}
                       disabled={i === 0}
@@ -182,7 +185,7 @@ export default function FiveByFiveSetup() {
                     <div className="text-sm font-bold text-foreground truncate">{entry.name}</div>
                     <div className="text-[11px] text-[#5E5278] mt-0.5">5 sets × 5 reps</div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                     <label className="text-[11px] text-[#9B8FB0] uppercase tracking-wider">Weight</label>
                     <input
                       type="number"
@@ -217,7 +220,7 @@ export default function FiveByFiveSetup() {
 
         {/* Exercise picker panel */}
         {showPicker && (
-          <div className="w-96 shrink-0 border-l border-border overflow-hidden">
+          <div className="w-full lg:w-96 lg:shrink-0 border-t lg:border-t-0 lg:border-l border-border overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name) => {
                 if (isAbTab) {

@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
 import { loadNavOrder } from '@/lib/navOrder'
+import { useActiveWorkoutPresence } from '@/hooks/useActiveWorkoutPresence'
 
 function getWorkoutRoute(type: string | null): string {
   if (type === 'five_by_five_a') return '/workout/5x5/active?label=A'
@@ -12,27 +11,8 @@ function getWorkoutRoute(type: string | null): string {
 }
 
 export default function SidebarNav() {
-  const location = useLocation()
-  const [hasActiveWorkout, setHasActiveWorkout] = useState(false)
-  const [activeWorkoutType, setActiveWorkoutType] = useState<string | null>(null)
-  const [navItems, setNavItems] = useState(loadNavOrder)
-
-  useEffect(() => {
-    async function check() {
-      const { data } = await supabase
-        .from('workouts')
-        .select('id, workout_type')
-        .not('started_at', 'is', null)
-        .is('completed_at', null)
-        .limit(1)
-      const found = (data?.length ?? 0) > 0
-      setHasActiveWorkout(found)
-      setActiveWorkoutType(found ? (data![0].workout_type ?? null) : null)
-    }
-    check()
-    // Re-read nav order from localStorage (e.g. after changing order in Settings)
-    setNavItems(loadNavOrder())
-  }, [location.pathname])
+  const { hasActiveWorkout, activeWorkoutType } = useActiveWorkoutPresence()
+  const navItems = loadNavOrder()
 
   return (
     <nav className="flex flex-col items-center w-16 landscape:w-[76px] bg-card border-r border-border h-full pt-4 pb-6 gap-1 shrink-0">

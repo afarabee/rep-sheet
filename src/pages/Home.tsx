@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useGoals } from '@/hooks/useGoals'
+import { useActiveWorkoutPresence } from '@/hooks/useActiveWorkoutPresence'
 import { formatDate, formatDuration, formatWorkoutType } from '@/lib/formatters'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -34,7 +35,7 @@ function getWorkoutRoute(type: string): string {
 function WorkoutCard({ date, type, status, exercises, duration }: Omit<RecentWorkout, 'id'>) {
   return (
     <div className="p-5 rounded-2xl bg-card border border-border cursor-pointer transition-all duration-150 hover:border-[#3D2E5C]">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
         <span className="text-sm font-bold text-foreground">{type}</span>
         <span
           className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
@@ -47,7 +48,7 @@ function WorkoutCard({ date, type, status, exercises, duration }: Omit<RecentWor
         </span>
       </div>
       <div className="text-xs text-[#9B8FB0] mb-1.5">{exercises || '—'}</div>
-      <div className="flex gap-3 text-xs text-[#5E5278]">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#5E5278]">
         <span>{date}</span>
         {duration && <><span>·</span><span>{duration}</span></>}
       </div>
@@ -83,7 +84,7 @@ export default function Home() {
   const [hasConfig, setHasConfig] = useState(false)
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([])
   const [stats, setStats] = useState<HomeStats>({ totalWorkouts: null, bodyWeight: null, bodyFatPct: null })
-  const [activeWorkout, setActiveWorkout] = useState<{ id: string; type: string } | null>(null)
+  const { activeWorkoutId, activeWorkoutType } = useActiveWorkoutPresence()
   const [showStretchForm, setShowStretchForm] = useState(false)
   const [stretchMinutes, setStretchMinutes] = useState('10')
   const [stretchNotes, setStretchNotes] = useState('')
@@ -92,7 +93,7 @@ export default function Home() {
 
   useEffect(() => {
     async function load() {
-      const [lastResult, configResult, workoutsResult, bodyCompResult, activeResult] = await Promise.all([
+      const [lastResult, configResult, workoutsResult, bodyCompResult] = await Promise.all([
         supabase
           .from('workouts')
           .select('workout_type')
@@ -115,17 +116,7 @@ export default function Home() {
           .select('weight_lbs, body_fat_pct')
           .order('recorded_at', { ascending: false })
           .limit(1),
-        supabase
-          .from('workouts')
-          .select('id, workout_type')
-          .not('started_at', 'is', null)
-          .is('completed_at', null)
-          .limit(1),
       ])
-
-      // Active workout
-      const active = activeResult.data?.[0]
-      setActiveWorkout(active ? { id: active.id, type: active.workout_type } : null)
 
       // Next 5×5 label
       const last = lastResult.data?.[0]?.workout_type
@@ -248,15 +239,15 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-full">
       {/* Hero Section */}
-      <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 px-4 lg:px-10 pt-6 lg:pt-8 pb-6">
+      <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:gap-10 px-4 lg:px-10 pt-6 lg:pt-8 pb-6">
         {/* Left: Title + Actions */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col w-full max-w-3xl">
           <div className="mb-2">
             <span className="text-sm font-black uppercase tracking-[0.3em] text-[#E91E8C] text-neon-glow">
               Rep Sheet
             </span>
           </div>
-          <h1 className="font-display text-5xl mb-1.5 leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl mb-1.5 leading-tight">
             Seeing your six-pack yet,<br />
             <span className="text-gradient-hero">Aimee?</span>
           </h1>
@@ -264,16 +255,16 @@ export default function Home() {
             Next up:{' '}
             <span className="text-[#00E5FF] font-bold">5×5 Workout {nextLabel}</span>
           </div>
-          <div className="flex gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <button
               onClick={handleStart5x5}
-              className="flex-1 py-4 px-6 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-[0.15em] neon-glow-strong transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
+              className="w-full sm:flex-1 py-4 px-6 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-[0.15em] neon-glow-strong transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
             >
               Start 5×5 Workout {nextLabel}
             </button>
             <button
               onClick={() => navigate('/workout/active')}
-              className="flex-1 py-4 px-6 rounded-xl bg-transparent border-2 border-[#00E5FF] text-[#00E5FF] text-sm font-black uppercase tracking-[0.15em] cyan-glow transition-all duration-150 hover:bg-[#00E5FF]/10 active:scale-[0.98]"
+              className="w-full sm:flex-1 py-4 px-6 rounded-xl bg-transparent border-2 border-[#00E5FF] text-[#00E5FF] text-sm font-black uppercase tracking-[0.15em] cyan-glow transition-all duration-150 hover:bg-[#00E5FF]/10 active:scale-[0.98]"
             >
               Start Freeform
             </button>
@@ -300,14 +291,14 @@ export default function Home() {
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7DFFC4] mb-3">
                 Stretch Session
               </div>
-              <div className="flex gap-3 mb-3">
+              <div className="flex flex-col sm:flex-row gap-3 mb-3">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-[#5E5278] uppercase tracking-wider">Duration (min)</label>
                   <input
                     type="number"
                     value={stretchMinutes}
                     onChange={(e) => setStretchMinutes(e.target.value)}
-                    className="w-20 h-9 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#7DFFC4] transition-colors"
+                    className="w-full sm:w-20 h-9 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#7DFFC4] transition-colors"
                     inputMode="numeric"
                     min="1"
                   />
@@ -324,17 +315,17 @@ export default function Home() {
                 </div>
               </div>
               {stretchError && <p className="text-xs text-[#FF4D6A] mb-2">{stretchError}</p>}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleLogStretch}
                   disabled={stretchSaving || !stretchMinutes || parseInt(stretchMinutes) <= 0}
-                  className="px-5 py-2 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40"
+                  className="w-full sm:w-auto px-5 py-2 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] text-xs font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40"
                 >
                   {stretchSaving ? 'Saving…' : 'Log Stretch'}
                 </button>
                 <button
                   onClick={() => setShowStretchForm(false)}
-                  className="px-4 py-2 rounded-lg border border-border text-[#5E5278] text-xs font-semibold hover:text-foreground transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg border border-border text-[#5E5278] text-xs font-semibold hover:text-foreground transition-colors"
                 >
                   Cancel
                 </button>
@@ -357,9 +348,9 @@ export default function Home() {
       </div>
 
       {/* Active Workout Banner */}
-      {activeWorkout && (
-        <div className="mx-4 lg:mx-10 mb-4 p-4 rounded-2xl border border-[#7DFFC4]/30 bg-[#7DFFC4]/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      {activeWorkoutId && activeWorkoutType && (
+        <div className="mx-4 lg:mx-10 mb-4 p-4 rounded-2xl border border-[#7DFFC4]/30 bg-[#7DFFC4]/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <span className="relative flex w-3 h-3 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7DFFC4] opacity-75" />
               <span className="relative inline-flex w-3 h-3 rounded-full bg-[#7DFFC4]" />
@@ -367,8 +358,8 @@ export default function Home() {
             <span className="text-sm font-bold text-[#7DFFC4]">Workout in progress</span>
           </div>
           <button
-            onClick={() => navigate(getWorkoutRoute(activeWorkout.type))}
-            className="text-xs font-black uppercase tracking-wider text-[#7DFFC4] border border-[#7DFFC4]/40 px-3 py-1.5 rounded-lg transition-all duration-150 hover:bg-[#7DFFC4]/10 active:scale-[0.98]"
+            onClick={() => navigate(getWorkoutRoute(activeWorkoutType))}
+            className="w-full sm:w-auto text-xs font-black uppercase tracking-wider text-[#7DFFC4] border border-[#7DFFC4]/40 px-3 py-1.5 rounded-lg transition-all duration-150 hover:bg-[#7DFFC4]/10 active:scale-[0.98]"
           >
             Resume →
           </button>
@@ -377,8 +368,8 @@ export default function Home() {
 
       {/* Active Goals */}
       {activeGoals.length > 0 && (
-        <div className="px-10 pb-6">
-          <div className="flex items-center justify-between mb-3">
+        <div className="px-4 lg:px-10 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
             <div className="text-[11px] font-black text-[#5E5278] uppercase tracking-[0.25em]">
               Active Goals
             </div>
@@ -437,7 +428,7 @@ export default function Home() {
             No workouts yet — start your first one above.
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {recentWorkouts.map((w) => (
               <WorkoutCard key={w.id} {...w} />
             ))}
@@ -447,7 +438,7 @@ export default function Home() {
 
       {/* Quick Stats */}
       <div className="px-4 lg:px-10 pb-8">
-        <div className="flex flex-col lg:flex-row gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {statCards.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}

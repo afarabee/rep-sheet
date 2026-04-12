@@ -51,7 +51,7 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, o
   return (
     <div
       className={cn(
-        'flex items-center gap-3 py-3 border-b border-border min-h-[56px] transition-colors',
+        'flex flex-wrap items-start gap-3 py-3 border-b border-border min-h-[56px] transition-colors sm:items-center',
         isInactive ? 'opacity-40' : 'hover:bg-[#1A1028]/60'
       )}
     >
@@ -73,8 +73,8 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, o
       </button>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="flex-1 min-w-[12rem]">
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
               'text-sm font-semibold text-foreground truncate',
@@ -94,7 +94,7 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, o
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5">
+        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
           {exercise.muscle_group && (
             <span className="text-[10px] text-[#9B8FB0] capitalize">{exercise.muscle_group}</span>
           )}
@@ -109,7 +109,7 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, o
 
       {/* Right actions */}
       {isInactive ? (
-        <div className="shrink-0">
+        <div className="w-full sm:w-auto sm:shrink-0 flex justify-end">
           <button
             onClick={() => onReactivate(exercise.id)}
             className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-[#7DFFC4]/15 text-[#7DFFC4] hover:bg-[#7DFFC4]/25 transition-colors"
@@ -118,7 +118,7 @@ function ExerciseRow({ exercise, onToggleFavorite, onDeactivate, onReactivate, o
           </button>
         </div>
       ) : (
-        <div className="shrink-0 flex items-center gap-1">
+        <div className="w-full sm:w-auto sm:shrink-0 flex items-center justify-end gap-1">
           {showActions ? (
             <>
               <button
@@ -280,14 +280,14 @@ export default function Library() {
     <div className="flex flex-col h-full">
 
       {/* ── Header Bar ── */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 lg:px-8 py-4 lg:py-5 flex flex-wrap items-center gap-3 lg:gap-4">
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 lg:px-8 py-4 lg:py-5 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 lg:gap-4">
         <h1 className="font-display text-2xl text-foreground shrink-0 uppercase tracking-wide">
           Exercise{' '}
           <span className="text-[#E91E8C] text-neon-glow">Library</span>
         </h1>
 
         {/* Search */}
-        <div className="flex-1 flex items-center relative max-w-md ml-4">
+        <div className="w-full sm:flex-1 flex items-center relative sm:max-w-md sm:ml-2 lg:ml-4">
           <Search size={14} className="absolute left-2.5 text-[#5E5278] pointer-events-none z-10" />
           <Input
             placeholder="Search exercises…"
@@ -311,7 +311,7 @@ export default function Library() {
           size="sm"
           onClick={() => setShowAddForm((v) => !v)}
           className={cn(
-            'ml-auto shrink-0 gap-1.5 transition-colors',
+            'w-full sm:w-auto sm:ml-auto shrink-0 gap-1.5 transition-colors',
             showAddForm && 'border-[#E91E8C] text-[#E91E8C]'
           )}
         >
@@ -403,7 +403,7 @@ export default function Library() {
             </label>
           </div>
           {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="ghost" size="sm" onClick={handleCancelForm}>
               Cancel
             </Button>
@@ -420,9 +420,9 @@ export default function Library() {
       )}
 
       {/* ── Filter Bar ── */}
-      <div className="sticky top-[73px] z-10 bg-background border-b border-border px-4 lg:px-8 pt-3 pb-3 flex flex-col gap-2">
+      <div className="z-10 bg-background border-b border-border px-4 lg:px-8 pt-3 pb-3 flex flex-col gap-2 sm:sticky sm:top-[73px]">
         {/* Muscle group chips */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap">
           {['all', ...MUSCLE_GROUPS].map((mg) => {
             const isAll = mg === 'all'
             const isActive = isAll ? selectedMuscleGroups.length === 0 : selectedMuscleGroups.includes(mg)
@@ -454,7 +454,7 @@ export default function Library() {
         </div>
 
         {/* Equipment type chips */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap">
           {['all', ...EQUIPMENT_TYPES].map((eq) => {
             const isAll = eq === 'all'
             const isActive = isAll ? selectedEquipmentTypes.length === 0 : selectedEquipmentTypes.includes(eq)
@@ -486,8 +486,8 @@ export default function Library() {
         </div>
 
         {/* Equipment toggle + result count */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setMyEquipmentOnly((v) => !v)}
               className={cn(
@@ -547,7 +547,7 @@ export default function Library() {
             </button>
           </div>
 
-          <span className="text-xs text-[#5E5278]">
+          <span className="text-xs text-[#5E5278] sm:text-right">
             {exercises.length === allExercises.length
               ? `${allExercises.length} exercises`
               : `${exercises.length} of ${allExercises.length} matching`}
@@ -556,7 +556,7 @@ export default function Library() {
       </div>
 
       {/* ── Exercise List ── */}
-      <div className="flex-1 px-4 lg:px-8 pb-8">
+      <div className="flex-1 px-3 sm:px-4 lg:px-8 pb-8">
         {loading && (
           <div className="flex items-center justify-center py-20">
             <p className="font-display text-xl uppercase tracking-widest text-[#5E5278]">

@@ -44,7 +44,7 @@ function WorkoutCard({ workout, isSelected, onClick }: {
       style={isSelected ? { boxShadow: 'inset 0 0 20px rgba(233,30,140,0.06)' } : {}}
     >
       {/* Type + status */}
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
         <span className={cn(
           'text-sm font-bold',
           isSelected ? 'text-foreground' : 'text-[#9B8FB0]'
@@ -68,7 +68,7 @@ function WorkoutCard({ workout, isSelected, onClick }: {
       </div>
 
       {/* Meta row */}
-      <div className="flex items-center gap-2 text-[11px] text-[#5E5278]">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#5E5278]">
         <span>{workout.exercise_count} exercise{workout.exercise_count !== 1 ? 's' : ''}</span>
         {duration && (
           <>
@@ -121,14 +121,14 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       {/* Header */}
       <div className="mb-8">
         <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] mb-1 text-neon-glow">
           {formatWorkoutType(detail.workout_type)}
         </div>
         <h1
-          className="font-display text-4xl uppercase leading-tight mb-2"
+          className="font-display text-3xl sm:text-4xl uppercase leading-tight mb-2"
           style={{
             background: 'linear-gradient(135deg, #F0EAF4 0%, #E91E8C 100%)',
             WebkitBackgroundClip: 'text',
@@ -138,7 +138,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
         >
           {formatDate(detail.started_at, { withYear: true })}
         </h1>
-        <div className="flex items-center gap-3 text-sm text-[#5E5278]">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-[#5E5278]">
           {detail.completed_at ? (
             <span className="text-[#7DFFC4] font-semibold">Complete</span>
           ) : (
@@ -158,7 +158,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
         )}
 
         {/* Action buttons */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-stretch sm:items-center gap-2">
           {/* Save as Template */}
           {detail.exercises.length > 0 && detail.workout_type !== 'stretch' && !templateSaved && (
             !showTemplateForm ? (
@@ -170,7 +170,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
                 Save as Template
               </button>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   type="text"
                   value={templateName}
@@ -178,18 +178,18 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveAsTemplate()}
                   placeholder="Template name"
                   autoFocus
-                  className="w-40 bg-[#1A1028] border border-[#3D2E5C] rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-[#3D2E5C] focus:outline-none focus:border-[#00E5FF]"
+                  className="w-full sm:w-40 bg-[#1A1028] border border-[#3D2E5C] rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-[#3D2E5C] focus:outline-none focus:border-[#00E5FF]"
                 />
                 <button
                   onClick={handleSaveAsTemplate}
                   disabled={!templateName.trim() || savingTemplate}
-                  className="px-3 py-1.5 rounded-lg bg-[#00E5FF] text-[#0F0A1A] text-xs font-bold disabled:opacity-40 hover:bg-[#00C8E0] transition-colors"
+                  className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-[#00E5FF] text-[#0F0A1A] text-xs font-bold disabled:opacity-40 hover:bg-[#00C8E0] transition-colors"
                 >
                   {savingTemplate ? 'Saving…' : 'Save'}
                 </button>
                 <button
                   onClick={() => { setShowTemplateForm(false); setTemplateName('') }}
-                  className="p-1.5 text-[#5E5278] hover:text-foreground"
+                  className="self-end sm:self-auto p-1.5 text-[#5E5278] hover:text-foreground"
                 >
                   <X size={14} />
                 </button>
@@ -199,7 +199,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
           {templateSaved && (
             <button
               onClick={() => navigate('/templates')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#7DFFC4]/30 bg-[#7DFFC4]/10 text-xs font-bold text-[#7DFFC4]"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#7DFFC4]/30 bg-[#7DFFC4]/10 text-xs font-bold text-[#7DFFC4]"
             >
               <LayoutTemplate size={12} />
               Template saved — view →
@@ -216,17 +216,17 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
               Delete Workout
             </button>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 onClick={() => { onDelete(detail.id); setConfirmingDelete(false) }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FF4D6A] bg-[#FF4D6A]/10 text-xs font-bold text-[#FF4D6A] hover:bg-[#FF4D6A]/20 transition-all duration-150"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FF4D6A] bg-[#FF4D6A]/10 text-xs font-bold text-[#FF4D6A] hover:bg-[#FF4D6A]/20 transition-all duration-150"
               >
                 <Trash2 size={12} />
                 Confirm Delete
               </button>
               <button
                 onClick={() => setConfirmingDelete(false)}
-                className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:text-foreground transition-all duration-150"
+                className="w-full sm:w-auto px-3 py-1.5 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:text-foreground transition-all duration-150"
               >
                 Cancel
               </button>
@@ -254,7 +254,7 @@ function WorkoutDetailView({ detail, onDelete }: { detail: WorkoutDetail; onDele
               {ex.sets.map((set) => (
                 <div
                   key={set.id}
-                  className="flex items-center gap-4 px-4 py-2.5 rounded-xl bg-background border border-border"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 py-3 rounded-xl bg-background border border-border"
                 >
                   <div className="w-7 h-7 rounded-lg bg-[#7DFFC4] text-[#0F0A1A] flex items-center justify-center text-xs font-black shrink-0">
                     {set.set_number}

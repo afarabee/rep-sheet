@@ -4,8 +4,10 @@ import { cn } from '@/lib/utils'
 import { useGoals } from '@/hooks/useGoals'
 import type { Goal } from '@/hooks/useGoals'
 import { useExercises } from '@/hooks/useExercises'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import MobileBackButton from '@/components/layout/MobileBackButton'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -122,7 +124,7 @@ function NewGoalForm({
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 overflow-y-auto">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 overflow-y-auto">
       <div>
         <h2 className="font-display text-2xl uppercase tracking-wide text-foreground mb-1">
           New <span className="text-[#E91E8C] text-neon-glow">Goal</span>
@@ -135,7 +137,7 @@ function NewGoalForm({
         <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5E5278] mb-2 block">
           Goal Type
         </Label>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {(['strength', 'body', 'free'] as Goal['goal_type'][]).map((t) => {
             const cfg = TYPE_CONFIG[t]
             const active = type === t
@@ -230,7 +232,7 @@ function NewGoalForm({
 
       {/* Target + current value */}
       {hasTarget && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label htmlFor="goal-target" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5E5278] mb-2 block">
               Target {type === 'strength' ? '(lbs)' : type === 'body' ? '(lbs / %)' : ''}
@@ -261,7 +263,7 @@ function NewGoalForm({
       )}
 
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
           onClick={onCancel}
           className="flex-1 py-3 rounded-xl border border-border text-sm font-black uppercase tracking-wider text-[#5E5278] hover:text-foreground hover:border-[#3D2E5C] transition-colors"
@@ -320,7 +322,7 @@ function GoalDetail({
     : null
 
   return (
-    <div className="flex flex-col gap-6 p-6 overflow-y-auto">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 overflow-y-auto">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-2">
@@ -364,7 +366,7 @@ function GoalDetail({
           <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5E5278] mb-2 block">
             Update Current Value
           </Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               type="number"
               value={newCurrent}
@@ -395,7 +397,7 @@ function GoalDetail({
 
       {/* Delete */}
       {confirmDelete ? (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setConfirmDelete(false)}
             className="flex-1 py-3 rounded-xl border border-border text-sm font-black uppercase tracking-wider text-[#5E5278] hover:text-foreground hover:border-[#3D2E5C] transition-colors"
@@ -428,6 +430,7 @@ type RightPane = 'idle' | 'new_form' | 'detail'
 
 export default function Goals() {
   const { activeGoals, completedGoals, loading, addGoal, updateGoal, completeGoal, deleteGoal } = useGoals()
+  const isMobile = useIsMobile()
   const [rightPane, setRightPane] = useState<RightPane>('idle')
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -462,7 +465,10 @@ export default function Goals() {
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── Left pane ── */}
-      <div className="w-80 shrink-0 flex flex-col border-r border-border bg-card h-full overflow-hidden">
+      <div className={cn(
+        'w-full lg:w-80 lg:shrink-0 flex flex-col border-r border-border bg-card h-full overflow-hidden',
+        isMobile && rightPane !== 'idle' && 'hidden'
+      )}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#5E5278]">
@@ -533,9 +539,17 @@ export default function Goals() {
       </div>
 
       {/* ── Right pane ── */}
-      <div className="flex-1 overflow-y-auto bg-radial-purple">
+      <div className={cn(
+        'flex-1 overflow-y-auto bg-radial-purple',
+        isMobile && rightPane === 'idle' && 'hidden'
+      )}>
+        {isMobile && rightPane !== 'idle' && (
+          <div className="px-4 pt-3 sm:px-6 sm:pt-4">
+            <MobileBackButton onBack={() => setRightPane('idle')} />
+          </div>
+        )}
         {rightPane === 'idle' && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-10">
+          <div className="flex flex-col items-center justify-center h-full text-center px-6 sm:px-10">
             <Target size={40} className="text-[#3D2E5C] mb-4" />
             <p className="text-sm text-[#5E5278] mb-6">Select a goal to view details, or add a new one.</p>
             <button

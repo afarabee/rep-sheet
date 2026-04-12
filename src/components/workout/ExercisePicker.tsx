@@ -124,7 +124,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
   return (
     <div className="flex flex-col h-full bg-background border-l border-border">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border shrink-0">
         <h2 className="font-display text-xl uppercase tracking-wide text-foreground">
           Add <span className="text-[#E91E8C] text-neon-glow">Exercise</span>
         </h2>
@@ -138,7 +138,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
       </div>
 
       {/* Search + filters */}
-      <div className="px-6 py-3 border-b border-border shrink-0 space-y-2">
+      <div className="px-4 sm:px-6 py-3 border-b border-border shrink-0 space-y-2">
         <div className="relative">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5E5278] pointer-events-none" />
           <Input
@@ -158,7 +158,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setFavoritesOnly((v) => !v)}
             className={cn(
@@ -210,7 +210,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
 
       {/* Muscle group chips */}
       {muscleGroups.length > 0 && (
-        <div className="px-6 py-2.5 border-b border-border shrink-0 flex flex-wrap gap-1.5">
+        <div className="px-4 sm:px-6 py-2.5 border-b border-border shrink-0 flex gap-1.5 overflow-x-auto">
           {muscleGroups.map((group) => (
             <button
               key={group}
@@ -230,7 +230,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
 
       {/* Equipment type chips */}
       {equipmentTypes.length > 0 && (
-        <div className="px-6 py-2.5 border-b border-border shrink-0 flex flex-wrap gap-1.5">
+        <div className="px-4 sm:px-6 py-2.5 border-b border-border shrink-0 flex gap-1.5 overflow-x-auto">
           {equipmentTypes.map((type) => (
             <button
               key={type}
@@ -251,7 +251,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
       {/* Exercise list / Create form */}
       <div className="flex-1 overflow-y-auto pb-6">
         {showCreateForm ? (
-          <div className="px-6 py-5">
+          <div className="px-4 sm:px-6 py-5">
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#7DFFC4] mb-4">
               New Custom Exercise
             </div>
@@ -342,7 +342,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
               </button>
             </div>
             {formError && <p className="text-xs text-[#FF4D6A] mb-3">{formError}</p>}
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => setShowCreateForm(false)}
                 className="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-[#5E5278] hover:text-foreground transition-colors"
@@ -367,7 +367,7 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
         )}
 
         {!loading && displayed.length === 0 && (
-          <div className="py-16 text-center px-6">
+          <div className="py-16 text-center px-4 sm:px-6">
             <p className="text-sm text-[#5E5278]">
               {searchQuery ? `No exercises match "${searchQuery}"` : 'No exercises found.'}
             </p>
@@ -395,20 +395,20 @@ export default function ExercisePicker({ onAdd, onClose, alreadyAddedIds }: Exer
               key={ex.id}
               onClick={() => { if (!alreadyAdded) onAdd(ex.id, ex.name, ex.equipment_type, ex.is_timed, ex.is_count) }}
               className={cn(
-                'flex items-center gap-3 px-6 py-3 border-b border-border min-h-[52px] transition-colors',
+                'flex items-start sm:items-center gap-3 px-4 sm:px-6 py-3 border-b border-border min-h-[52px] transition-colors',
                 alreadyAdded
                   ? 'opacity-50'
                   : 'cursor-pointer hover:bg-[#E91E8C]/5 active:bg-[#E91E8C]/10'
               )}
             >
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {ex.is_favorite && (
                     <Star size={11} className="text-[#E91E8C] fill-[#E91E8C] shrink-0" />
                   )}
                   <span className="text-sm font-semibold text-foreground truncate">{ex.name}</span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                   {ex.muscle_group && (
                     <span className="text-[10px] text-[#9B8FB0] capitalize">{ex.muscle_group}</span>
                   )}

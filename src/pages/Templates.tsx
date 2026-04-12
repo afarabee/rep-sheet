@@ -49,7 +49,7 @@ function TemplateCard({
       </div>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete() }}
-        className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-0 group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
+        className="absolute top-3 right-3 p-1 rounded text-[#3D2E5C] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-[#FF4D6A] transition-all"
       >
         <Trash2 size={13} />
       </button>
@@ -276,7 +276,8 @@ export default function Templates() {
         {/* Detail / create area */}
         <div className={cn(
           'overflow-y-auto p-4 lg:p-6 bg-radial-purple',
-          showPicker && !isMobile ? 'w-80 lg:w-96 shrink-0' : 'flex-1'
+          showPicker && !isMobile ? 'w-[min(24rem,45vw)] shrink-0' : 'flex-1',
+          showPicker && isMobile && 'hidden'
         )}>
 
           {/* Mobile back button */}
@@ -300,7 +301,7 @@ export default function Templates() {
           {/* ── 5×5 Config detail ── */}
           {selected5x5 && !creating && (
             <div className="max-w-2xl">
-              <div className="flex items-start justify-between mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[11px] font-black uppercase tracking-[0.25em] text-[#00E5FF] text-cyan-glow">
@@ -325,10 +326,10 @@ export default function Templates() {
                 <button
                   onClick={() => navigate(`/workout/5x5/active?label=${selected5x5}`)}
                   disabled={active5x5Config.length === 0}
-                  className="shrink-0 px-6 py-3 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-sm font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Start Workout
-                </button>
+                  className="w-full sm:w-auto shrink-0 px-6 py-3 rounded-xl bg-[#00E5FF] text-[#0F0A1A] text-sm font-black uppercase tracking-wider transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Start Workout
+                  </button>
               </div>
 
               {active5x5Config.length === 0 && (
@@ -345,8 +346,8 @@ export default function Templates() {
 
               <div className="flex flex-col gap-3 mb-4">
                 {active5x5Config.map((ex, i) => (
-                  <div key={ex.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
-                    <div className="flex flex-col gap-1 shrink-0">
+                  <div key={ex.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex flex-row sm:flex-col gap-1 shrink-0">
                       <button
                         onClick={() => reorder5x5Exercise(selected5x5, ex.id, 'up')}
                         disabled={i === 0}
@@ -365,12 +366,12 @@ export default function Templates() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-foreground truncate">{ex.name}</div>
                     </div>
-                    <div className="shrink-0 text-[11px] font-bold text-[#00E5FF]">
+                    <div className="text-[11px] font-bold text-[#00E5FF] sm:shrink-0">
                       5 × 5
                     </div>
                     <button
                       onClick={() => remove5x5Exercise(ex.id, selected5x5)}
-                      className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                      className="self-end sm:self-auto p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
                     >
                       <X size={14} />
                     </button>
@@ -391,7 +392,7 @@ export default function Templates() {
           {creating && (
             <div className="max-w-2xl">
               {/* Header with name input + Save/Cancel */}
-              <div className="flex items-start justify-between mb-6 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] mb-1 text-neon-glow">
                     New Template
@@ -406,17 +407,17 @@ export default function Templates() {
                     className="font-display text-3xl uppercase text-foreground bg-transparent outline-none border-b-2 border-[#3D2E5C] focus:border-[#E91E8C] w-full transition-colors pb-1 placeholder:text-[#3D2E5C]"
                   />
                 </div>
-                <div className="flex gap-2 shrink-0 mt-6">
+                <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2 shrink-0 sm:mt-6">
                   <button
                     onClick={handleSaveTemplate}
                     disabled={!draftName.trim()}
-                    className="px-6 py-2.5 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Save Template
                   </button>
                   <button
                     onClick={handleCancelCreate}
-                    className="px-4 py-2.5 rounded-xl border border-border text-[#9B8FB0] text-sm font-semibold hover:text-foreground hover:border-[#3D2E5C] transition-all"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-border text-[#9B8FB0] text-sm font-semibold hover:text-foreground hover:border-[#3D2E5C] transition-all"
                   >
                     Cancel
                   </button>
@@ -447,8 +448,8 @@ export default function Templates() {
 
               <div className="flex flex-col gap-3 mb-4">
                 {draftExercises.map((ex, i) => (
-                  <div key={ex.key} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
-                    <div className="flex flex-col gap-1 shrink-0">
+                  <div key={ex.key} className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex flex-row sm:flex-col gap-1 shrink-0">
                       <button
                         onClick={() => draftReorder(ex.key, 'up')}
                         disabled={i === 0}
@@ -467,7 +468,7 @@ export default function Templates() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-foreground truncate">{ex.name}</div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 text-[11px] text-[#9B8FB0]">
+                    <div className="flex w-full sm:w-auto flex-wrap items-center gap-2 text-[11px] text-[#9B8FB0]">
                       <input
                         type="number"
                         defaultValue={ex.prescribed_sets ?? ''}
@@ -476,7 +477,7 @@ export default function Templates() {
                           const val = e.target.value.trim()
                           draftUpdatePrescription(ex.key, val ? parseInt(val) : null, ex.prescribed_reps)
                         }}
-                        className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
+                        className="w-14 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                         inputMode="numeric"
                       />
                       <span>sets</span>
@@ -489,14 +490,14 @@ export default function Templates() {
                           const val = e.target.value.trim()
                           draftUpdatePrescription(ex.key, ex.prescribed_sets, val ? parseInt(val) : null)
                         }}
-                        className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
+                        className="w-14 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                         inputMode="numeric"
                       />
                       <span>{ex.is_count ? 'count' : ex.is_timed ? 'sec' : 'reps'}</span>
                     </div>
                     <button
                       onClick={() => draftRemoveExercise(ex.key)}
-                      className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                      className="self-end sm:self-auto p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
                     >
                       <X size={14} />
                     </button>
@@ -526,7 +527,7 @@ export default function Templates() {
 
               {!detailLoading && detail && (
                 <div className="max-w-2xl">
-                  <div className="flex items-start justify-between mb-6 gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] font-black uppercase tracking-[0.25em] text-[#E91E8C] mb-1 text-neon-glow">
                         Template
@@ -544,7 +545,7 @@ export default function Templates() {
                     <button
                       onClick={() => navigate(`/workout/active?templateId=${detail.id}`)}
                       disabled={detail.exercises.length === 0}
-                      className="shrink-0 px-6 py-3 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto shrink-0 px-6 py-3 rounded-xl bg-[#E91E8C] text-white text-sm font-black uppercase tracking-wider neon-glow-strong transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Start Workout
                     </button>
@@ -577,8 +578,8 @@ export default function Templates() {
 
                   <div className="flex flex-col gap-3 mb-4">
                     {detail.exercises.map((ex, i) => (
-                      <div key={ex.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
-                        <div className="flex flex-col gap-1 shrink-0">
+                      <div key={ex.id} className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="flex flex-row sm:flex-col gap-1 shrink-0">
                           <button
                             onClick={() => reorderExercise(ex.id, 'up')}
                             disabled={i === 0}
@@ -597,7 +598,7 @@ export default function Templates() {
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-bold text-foreground truncate">{ex.name}</div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0 text-[11px] text-[#9B8FB0]">
+                        <div className="flex w-full sm:w-auto flex-wrap items-center gap-2 text-[11px] text-[#9B8FB0]">
                           <input
                             type="number"
                             defaultValue={ex.prescribed_sets ?? ''}
@@ -606,7 +607,7 @@ export default function Templates() {
                               const val = e.target.value.trim()
                               updatePrescription(ex.id, val ? parseInt(val) : null, ex.prescribed_reps)
                             }}
-                            className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
+                            className="w-14 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                             inputMode="numeric"
                           />
                           <span>sets</span>
@@ -619,14 +620,14 @@ export default function Templates() {
                               const val = e.target.value.trim()
                               updatePrescription(ex.id, ex.prescribed_sets, val ? parseInt(val) : null)
                             }}
-                            className="w-12 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
+                            className="w-14 h-8 rounded-lg bg-background border border-[#3D2E5C] text-foreground text-sm font-bold text-center outline-none focus:border-[#E91E8C] transition-colors"
                             inputMode="numeric"
                           />
                           <span>{ex.is_count ? 'count' : ex.is_timed ? 'sec' : 'reps'}</span>
                         </div>
                         <button
                           onClick={() => removeExercise(ex.id)}
-                          className="p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
+                          className="self-end sm:self-auto p-1.5 rounded-lg text-[#3D2E5C] hover:text-[#FF4D6A] hover:bg-[#FF4D6A]/10 transition-all shrink-0"
                         >
                           <X size={14} />
                         </button>
@@ -648,7 +649,7 @@ export default function Templates() {
 
         {/* Exercise picker panel */}
         {showPicker && (creating || detail || selected5x5) && (
-          <div className="w-full lg:flex-1 border-l border-border overflow-hidden">
+          <div className="w-full lg:flex-1 border-t border-border lg:border-t-0 lg:border-l overflow-hidden">
             <ExercisePicker
               onAdd={(exerciseId, name, equipmentType, isTimed, isCount) => {
                 if (creating) {

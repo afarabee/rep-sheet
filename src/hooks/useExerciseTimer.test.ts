@@ -5,6 +5,7 @@ import { useExerciseTimer } from './useExerciseTimer'
 describe('useExerciseTimer', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    localStorage.clear()
   })
 
   afterEach(() => {
@@ -76,5 +77,21 @@ describe('useExerciseTimer', () => {
     act(() => result.current.stop())
     act(() => result.current.start()) // start again
     expect(result.current.elapsedSeconds).toBe(0)
+  })
+
+  it('restores a running timer from storage after remount', () => {
+    const storageKey = 'rep-sheet.exercise-timer:test'
+    const { result, unmount } = renderHook(() => useExerciseTimer(storageKey))
+
+    act(() => result.current.start())
+    act(() => vi.advanceTimersByTime(4000))
+    expect(result.current.elapsedSeconds).toBe(4)
+
+    unmount()
+    act(() => vi.advanceTimersByTime(3000))
+
+    const remounted = renderHook(() => useExerciseTimer(storageKey))
+    expect(remounted.result.current.timerState).toBe('running')
+    expect(remounted.result.current.elapsedSeconds).toBe(7)
   })
 })
