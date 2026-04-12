@@ -105,12 +105,14 @@ export function useTemplates() {
 
   async function saveNewTemplate(
     name: string,
-    exercises: Array<{ exercise_id: string; prescribed_sets: number | null; prescribed_reps: number | null }>
+    exercises: Array<{ exercise_id: string; prescribed_sets: number | null; prescribed_reps: number | null }>,
+    notes?: string
   ): Promise<string | null> {
     setError(null)
+    const trimmedNotes = notes?.trim() || null
     const { data, error: insertError } = await supabase
       .from('workout_templates')
-      .insert({ name, notes: null })
+      .insert({ name, notes: trimmedNotes })
       .select('id')
       .single()
     if (insertError) { setError(insertError.message); return null }
@@ -133,7 +135,7 @@ export function useTemplates() {
     const newTemplate: WorkoutTemplate = {
       id: templateId,
       name,
-      notes: null,
+      notes: trimmedNotes,
       created_at: new Date().toISOString(),
       exercise_count: exercises.length,
     }
@@ -154,13 +156,14 @@ export function useTemplates() {
 
   async function updateNotes(id: string, notes: string) {
     setError(null)
+    const trimmedNotes = notes.trim() || null
     const { error } = await supabase
       .from('workout_templates')
-      .update({ notes, updated_at: new Date().toISOString() })
+      .update({ notes: trimmedNotes, updated_at: new Date().toISOString() })
       .eq('id', id)
     if (error) { setError(error.message); return }
-    setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, notes } : t))
-    if (detail?.id === id) setDetail((prev) => prev ? { ...prev, notes } : prev)
+    setTemplates((prev) => prev.map((t) => t.id === id ? { ...t, notes: trimmedNotes } : t))
+    if (detail?.id === id) setDetail((prev) => prev ? { ...prev, notes: trimmedNotes } : prev)
   }
 
   async function deleteTemplate(id: string) {

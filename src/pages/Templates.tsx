@@ -67,6 +67,7 @@ export default function Templates() {
 
   // Draft state — local only, nothing touches DB until Save
   const [draftName, setDraftName] = useState('')
+  const [draftNotes, setDraftNotes] = useState('')
   const [draftExercises, setDraftExercises] = useState<DraftExercise[]>([])
   const [draftKey, setDraftKey] = useState(0)  // incrementing key for list identity
 
@@ -107,6 +108,7 @@ export default function Templates() {
     setSelectedId(null)
     setSelected5x5(null)
     setDraftName('')
+    setDraftNotes('')
     setDraftExercises([])
     setShowPicker(false)
     setShowDetail(true)
@@ -115,14 +117,16 @@ export default function Templates() {
   function handleCancelCreate() {
     setCreating(false)
     setDraftName('')
+    setDraftNotes('')
     setDraftExercises([])
     setShowPicker(false)
   }
 
   async function handleSaveTemplate() {
     if (!draftName.trim()) return
-    const id = await saveNewTemplate(draftName.trim(), draftExercises)
+    const id = await saveNewTemplate(draftName.trim(), draftExercises, draftNotes)
     setDraftName('')
+    setDraftNotes('')
     setDraftExercises([])
     setCreating(false)
     setShowPicker(false)
@@ -419,6 +423,15 @@ export default function Templates() {
                 </div>
               </div>
 
+              {/* Notes */}
+              <textarea
+                value={draftNotes}
+                onChange={(e) => setDraftNotes(e.target.value)}
+                placeholder="Notes..."
+                rows={3}
+                className="w-full mb-5 px-4 py-3 rounded-xl bg-transparent border border-[#3D2E5C] text-sm text-foreground placeholder:text-[#3D2E5C] outline-none focus:border-[#E91E8C] transition-colors resize-y min-h-[80px] font-sans"
+              />
+
               {/* Draft exercise list */}
               {draftExercises.length === 0 && (
                 <div className="py-10 text-center border border-dashed border-[#3D2E5C] rounded-2xl mb-4">
@@ -537,17 +550,17 @@ export default function Templates() {
                     </button>
                   </div>
 
-                  {/* Template Notes */}
+                  {/* Notes */}
                   <textarea
-                    key={detail.id}
+                    key={`notes-${detail.id}`}
                     defaultValue={detail.notes ?? ''}
                     onBlur={(e) => {
-                      const val = e.target.value.trim()
+                      const val = e.target.value
                       if (val !== (detail.notes ?? '')) updateNotes(detail.id, val)
                     }}
-                    placeholder="Add notes, instructions, or cues…"
-                    rows={4}
-                    className="w-full bg-background border border-[#3D2E5C] rounded-xl px-4 py-3 text-sm text-foreground resize-y outline-none focus:border-[#E91E8C] transition-colors placeholder:text-[#3D2E5C] mb-4"
+                    placeholder="Notes..."
+                    rows={3}
+                    className="w-full mb-5 px-4 py-3 rounded-xl bg-transparent border border-[#3D2E5C] text-sm text-foreground placeholder:text-[#3D2E5C] outline-none focus:border-[#E91E8C] transition-colors resize-y min-h-[80px] font-sans"
                   />
 
                   {detail.exercises.length === 0 && (
