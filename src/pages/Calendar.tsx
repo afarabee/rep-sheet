@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Dumbbell, Zap, LayoutTemplate, CalendarPlus, X, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Dumbbell, Zap, LayoutTemplate, CalendarPlus, X, Trash2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useCalendarData } from '@/hooks/useCalendarData'
@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { formatWorkoutType, formatDuration } from '@/lib/formatters'
 import MobileBackButton from '@/components/layout/MobileBackButton'
 import ResizableLayout from '@/components/layout/ResizableLayout'
+import ExercisePicker from '@/components/workout/ExercisePicker'
 import type { CalendarWorkout, ScheduledWorkout } from '@/hooks/useCalendarData'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -119,6 +120,8 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
   const [templates, setTemplates] = useState<TemplateOption[]>([])
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [selectedExercises, setSelectedExercises] = useState<{ id: string; name: string }[]>([])
+  const [showExercisePicker, setShowExercisePicker] = useState(false)
 
   useEffect(() => {
     async function loadTemplates() {
@@ -139,9 +142,31 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
       isTemplate ? null : type,
       isTemplate ? templateId : null,
       notes || null,
+      type === 'freeform' ? selectedExercises.map((e) => e.id) : undefined,
     )
     setSaving(false)
     onSaved()
+  }
+
+  function handleAddExercise(exerciseId: string, name: string) {
+    setSelectedExercises((prev) => [...prev, { id: exerciseId, name }])
+  }
+
+  function handleRemoveExercise(exerciseId: string) {
+    setSelectedExercises((prev) => prev.filter((e) => e.id !== exerciseId))
+  }
+
+  // Full-screen exercise picker overlay
+  if (showExercisePicker) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        <ExercisePicker
+          onAdd={(id, name) => handleAddExercise(id, name)}
+          onClose={() => setShowExercisePicker(false)}
+          alreadyAddedIds={selectedExercises.map((e) => e.id)}
+        />
+      </div>
+    )
   }
 
   return (
@@ -160,7 +185,7 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
         {SCHEDULE_TYPES.map((t) => (
           <button
             key={t.value}
-            onClick={() => setType(t.value)}
+            onClick={() => { setType(t.value); if (t.value !== 'freeform') setSelectedExercises([]) }}
             className={cn(
               'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
               type === t.value
@@ -185,6 +210,41 @@ function ScheduleForm({ dateStr, onSaved, onCancel }: {
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
         </select>
+      )}
+
+      {/* Freeform exercise selection */}
+      {type === 'freeform' && (
+        <div className="mb-3">
+          {selectedExercises.length > 0 && (
+            <div className="flex flex-col gap-1.5 mb-2">
+              {selectedExercises.map((ex, i) => (
+                <div
+                  key={ex.id}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#1A1028] border border-[#2A2040]"
+                >
+                  <span className="text-xs text-foreground">
+                    <span className="text-[#5E5278] mr-2">{i + 1}.</span>
+                    {ex.name}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveExercise(ex.id)}
+                    className="p-0.5 text-[#5E5278] hover:text-[#FF4D6A] transition-colors"
+                    aria-label={`Remove ${ex.name}`}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setShowExercisePicker(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-[#2A2040] text-xs text-[#9B8FB0] hover:border-[#FFD166] hover:text-[#FFD166] transition-colors w-full justify-center"
+          >
+            <Plus size={12} />
+            Add Exercises
+          </button>
+        </div>
       )}
 
       {/* Notes */}
@@ -235,6 +295,8 @@ function DayDetail({
   function handleStartScheduled(s: ScheduledWorkout) {
     if (s.template_id) {
       navigate(`/workout/active?templateId=${s.template_id}`)
+    } else if (s.workout_type === 'freeform' && s.exercise_count > 0) {
+      navigate(`/workout/active?scheduledId=${s.id}`)
     } else if (s.workout_type) {
       navigate(getWorkoutRoute(s.workout_type))
     }
@@ -333,6 +395,11 @@ function DayDetail({
                   Planned
                 </span>
               </div>
+              {s.exercise_count > 0 && (
+                <p className="text-[10px] text-[#9B8FB0] mb-1">
+                  {s.exercise_count} exercise{s.exercise_count !== 1 ? 's' : ''} planned
+                </p>
+              )}
               {s.notes && (
                 <p className="text-xs text-[#9B8FB0] mb-2">{s.notes}</p>
               )}

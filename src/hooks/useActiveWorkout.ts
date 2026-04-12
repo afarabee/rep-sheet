@@ -38,7 +38,7 @@ function playBeep() {
   }
 }
 
-export function useActiveWorkout(templateId?: string) {
+export function useActiveWorkout(templateId?: string, scheduledId?: string) {
   const [workoutId, setWorkoutId] = useState<string | null>(null)
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([])
   const [activeExerciseIndex, setActiveExerciseIndex] = useState(0)
@@ -46,6 +46,7 @@ export function useActiveWorkout(templateId?: string) {
   const [restSecondsLeft, setRestSecondsLeft] = useState<number | null>(null)
   const [status, setStatus] = useState<'creating' | 'planning' | 'active' | 'ended'>('creating')
   const [isPaused, setIsPaused] = useState(false)
+  const [initialNotes, setInitialNotes] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [templateNotes, setTemplateNotes] = useState<string | null>(null)
 
@@ -67,7 +68,7 @@ export function useActiveWorkout(templateId?: string) {
       // Check for an existing in-progress freeform/template workout
       const { data: existing } = await supabase
         .from('workouts')
-        .select('id, started_at')
+        .select('id, started_at, notes')
         .in('workout_type', ['freeform', 'template'])
         .not('started_at', 'is', null)
         .is('completed_at', null)
@@ -128,6 +129,7 @@ export function useActiveWorkout(templateId?: string) {
           setWorkoutExercises(exs)
         }
 
+        if (existing.notes) setInitialNotes(existing.notes)
         setStatus('active')
         return
       }
@@ -147,11 +149,21 @@ export function useActiveWorkout(templateId?: string) {
       setWorkoutId(wid)
 
       if (templateId) {
-        const { data: teData } = await supabase
-          .from('workout_template_exercises')
-          .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type, is_timed, is_count)')
-          .eq('template_id', templateId)
-          .order('sort_order', { ascending: true })
+        // Fetch template notes and exercises in parallel
+        const [{ data: tplData }, { data: teData }] = await Promise.all([
+          supabase.from('workout_templates').select('notes').eq('id', templateId).single(),
+          supabase
+            .from('workout_template_exercises')
+            .select('exercise_id, sort_order, prescribed_sets, prescribed_reps, exercises(name, equipment_type, is_timed, is_count)')
+            .eq('template_id', templateId)
+            .order('sort_order', { ascending: true }),
+        ])
+
+        // Copy template notes to the workout
+        if (tplData?.notes) {
+          setInitialNotes(tplData.notes)
+          await supabase.from('workouts').update({ notes: tplData.notes }).eq('id', wid)
+        }
 
         if (teData && teData.length > 0) {
           const { data: weData } = await supabase
@@ -186,6 +198,56 @@ export function useActiveWorkout(templateId?: string) {
 
           setWorkoutExercises(exs)
         }
+      } else if (scheduledId) {
+        // Load exercises from scheduled workout and copy notes
+        const [{ data: schData }, { data: sweData }] = await Promise.all([
+          supabase.from('scheduled_workouts').select('notes').eq('id', scheduledId).single(),
+          supabase
+            .from('scheduled_workout_exercises')
+            .select('exercise_id, sort_order, exercises(name, equipment_type, is_timed, is_count)')
+            .eq('scheduled_workout_id', scheduledId)
+            .order('sort_order', { ascending: true }),
+        ])
+
+        if (schData?.notes) {
+          setInitialNotes(schData.notes)
+          await supabase.from('workouts').update({ notes: schData.notes }).eq('id', wid)
+        }
+
+        if (sweData && sweData.length > 0) {
+          const { data: weData } = await supabase
+            .from('workout_exercises')
+            .insert(
+              sweData.map((swe) => ({
+                workout_id: wid,
+                exercise_id: swe.exercise_id,
+                sort_order: swe.sort_order,
+              }))
+            )
+            .select('id, exercise_id, sort_order')
+
+          const exs: WorkoutExercise[] = (weData ?? [])
+            .map((we) => {
+              const swe = sweData.find((s) => s.exercise_id === we.exercise_id)
+              const ex = swe?.exercises as unknown as { name: string; equipment_type: string | null; is_timed: boolean; is_count: boolean } | null
+              return {
+                id: we.id,
+                exercise_id: we.exercise_id,
+                sort_order: we.sort_order,
+                name: ex?.name ?? 'Unknown',
+                equipment_type: ex?.equipment_type ?? null,
+                is_timed: ex?.is_timed ?? false,
+                is_count: ex?.is_count ?? false,
+                sets: [],
+              }
+            })
+            .sort((a, b) => a.sort_order - b.sort_order)
+
+          setWorkoutExercises(exs)
+        }
+
+        // Remove the scheduled workout — plan fulfilled
+        await supabase.from('scheduled_workouts').delete().eq('id', scheduledId)
       }
 
       setStatus('planning')
@@ -342,5 +404,6 @@ export function useActiveWorkout(templateId?: string) {
     saveNotes,
     endWorkout,
     cancelWorkout,
+    initialNotes,
   }
 }

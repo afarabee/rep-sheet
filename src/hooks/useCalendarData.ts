@@ -15,6 +15,7 @@ export interface ScheduledWorkout {
   template_id: string | null
   template_name: string | null
   notes: string | null
+  exercise_count: number
 }
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
@@ -51,7 +52,7 @@ export function useCalendarData(year: number, month: number) {
           .order('started_at', { ascending: true }),
         supabase
           .from('scheduled_workouts')
-          .select('id, scheduled_date, workout_type, template_id, notes, workout_templates(name)')
+          .select('id, scheduled_date, workout_type, template_id, notes, workout_templates(name), scheduled_workout_exercises(count)')
           .gte('scheduled_date', startDate)
           .lt('scheduled_date', endDate)
           .order('scheduled_date', { ascending: true }),
@@ -76,6 +77,7 @@ export function useCalendarData(year: number, month: number) {
       setScheduled(
         (schResult.data ?? []).map((s) => {
           const tmpl = s.workout_templates as unknown as { name: string } | null
+          const sweCount = s.scheduled_workout_exercises as unknown as { count: number }[] | null
           return {
             id: s.id,
             scheduled_date: s.scheduled_date,
@@ -83,6 +85,7 @@ export function useCalendarData(year: number, month: number) {
             template_id: s.template_id,
             template_name: tmpl?.name ?? null,
             notes: s.notes,
+            exercise_count: sweCount?.[0]?.count ?? 0,
           }
         })
       )

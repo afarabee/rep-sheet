@@ -40,6 +40,7 @@ export default function ActiveWorkout() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const templateId = searchParams.get('templateId') ?? undefined
+  const scheduledId = searchParams.get('scheduledId') ?? undefined
   const {
     workoutExercises,
     activeExerciseIndex,
@@ -61,7 +62,8 @@ export default function ActiveWorkout() {
     endWorkout,
     cancelWorkout,
     isPaused,
-  } = useActiveWorkout(templateId)
+    initialNotes,
+  } = useActiveWorkout(templateId, scheduledId)
 
   const isMobile = useIsMobile()
   const [showPicker, setShowPicker] = useState(false)
@@ -73,6 +75,11 @@ export default function ActiveWorkout() {
   const { timerState, elapsedSeconds: timerSeconds, start: startTimer, pause: pauseTimer, resume: resumeTimer, stop: stopTimer, cancel: cancelTimer } = useExerciseTimer()
 
   const activeExercise = workoutExercises[activeExerciseIndex] ?? null
+
+  // Pre-populate notes from template or resumed workout
+  useEffect(() => {
+    if (initialNotes) setNotes(initialNotes)
+  }, [initialNotes])
 
   // Carry forward weight/reps when switching exercises
   useEffect(() => {
